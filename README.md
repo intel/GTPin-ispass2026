@@ -63,8 +63,6 @@ TBD
 
 ## How To Run
 
-## How To Run
-
 1. Clone this repository, and change to the repository directory:
    ```bash
    git clone --single-branch --depth 1 https://github.com/intel/GTPin-ispass2026
