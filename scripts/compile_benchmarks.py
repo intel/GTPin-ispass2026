@@ -22,7 +22,6 @@ def parse_and_validate_args() -> argparse.Namespace:
 def main():
     args = parse_and_validate_args()
     benchmark_cfg = read_yaml_cfg("scripts/specs.yaml")["HeCBench"]
-
     requested_pm = args.programming_model
     compiled_any = False
     skipped = []
@@ -39,13 +38,13 @@ def main():
         # Safer than eval() for YAML strings representing Python literals (lists/strings)
         compile_flags = ast.literal_eval(cfgs["compilation_flags"])
 
-        print(f"{args.action.capitalize()}ing {bench}-{requested_pm}")
+        print(f"{args.action.capitalize()}ing {bench}-sycl")
         benchmark_folder = os.path.join(args.hecbench_dir, "src", f"{bench}-sycl")
 
         make_command = (["make"] + list(compile_flags)) if args.action == "build" else ["make", "clean"]
         status_code = subprocess.call(args=make_command, cwd=benchmark_folder)
         if status_code:
-            raise ChildProcessError(f"Failed {args.action}ing {bench}-{requested_pm}.")
+            raise ChildProcessError(f"Failed {args.action}ing {bench}-sycl.")
 
         compiled_any = True
 
@@ -57,7 +56,6 @@ def main():
 
     if skipped:
         print(f"Skipped {len(skipped)} benchmarks (no '{requested_pm}' variant): {', '.join(skipped)}")
-
 
 if __name__ == "__main__":
     main()
