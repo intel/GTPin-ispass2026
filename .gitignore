@@ -1,0 +1,6 @@
+*~
+GTPin/Profilers/*
+GTPIN_PROFILE*
+*.tar.*
+*.pkl
+*.pyc

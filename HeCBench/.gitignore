@@ -1,5 +1,5 @@
 *~
-*.txt
+*output.txt
 *.bin
 *.o
 *.ppm
@@ -12,4 +12,4 @@
 *.log
 *.yaml
 dpct_output
-*/main
+**/main

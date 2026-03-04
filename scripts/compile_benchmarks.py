@@ -38,13 +38,13 @@ def main():
         # Safer than eval() for YAML strings representing Python literals (lists/strings)
         compile_flags = ast.literal_eval(cfgs["compilation_flags"])
 
-        print(f"{args.action.capitalize()}ing {bench}-sycl")
+        print(f"{args.action.capitalize()}ing {bench}-{requested_pm}")
         benchmark_folder = os.path.join(args.hecbench_dir, "src", f"{bench}-sycl")
 
         make_command = (["make"] + list(compile_flags)) if args.action == "build" else ["make", "clean"]
         status_code = subprocess.call(args=make_command, cwd=benchmark_folder)
         if status_code:
-            raise ChildProcessError(f"Failed {args.action}ing {bench}-sycl.")
+            raise ChildProcessError(f"Failed {args.action}ing {bench}-{requested_pm}.")
 
         compiled_any = True
 
