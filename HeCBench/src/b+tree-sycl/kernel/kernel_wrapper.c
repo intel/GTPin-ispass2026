@@ -1,13 +1,11 @@
 #include <string.h>
 #include <stdio.h>
-#include <sycl/sycl.hpp>
-
 #include "b+tree.h"
 #include "timer.h"
 #include "kernel_wrapper.h"
 
 
-double 
+void 
 kernel_wrapper(	
     sycl::queue &q,
     record *records,
@@ -61,20 +59,14 @@ kernel_wrapper(
   q.wait();
   long long kernel_start = get_time();
 
-  auto event = q.submit([&](sycl::handler& cgh) {
+  q.submit([&](sycl::handler& cgh) {
     cgh.parallel_for<class findK>(sycl::nd_range<1>(
       sycl::range<1>(global_work_size[0]),
       sycl::range<1>(local_work_size[0])), [=] (sycl::nd_item<1> item) {
       #include "findK.sycl"
     });
-  });
+  }).wait();
 
-  event.wait();
-  
-  // Get GPU execution time
-  auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-  auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-  
   long long kernel_end = get_time();
 
   q.memcpy(ans, ansD_acc, count*sizeof(record)).wait();
@@ -93,7 +85,5 @@ kernel_wrapper(
 #endif
 
   printf("Kernel execution time: %f (us)\n", (float)(kernel_end-kernel_start));
-  
-  return (end_time - start_time) / 1e6;
 }
 

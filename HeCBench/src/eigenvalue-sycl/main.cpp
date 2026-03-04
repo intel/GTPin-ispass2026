@@ -1,10 +1,10 @@
 /**********************************************************************
-  Copyright ï¿½2013 Advanced Micro Devices, Inc. All rights reserved.
+  Copyright ©2013 Advanced Micro Devices, Inc. All rights reserved.
 
   Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-  ï¿½   Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-  ï¿½   Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
+  •   Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+  •   Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
   other materials provided with the distribution.
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -25,7 +25,7 @@
 #include "utils.cpp"
 #include "kernels.cpp"
 
-double runKernels(
+void runKernels(
     sycl::queue &q,
     const float *diagonalBuffer,
            uint *numEigenValuesIntervalBuffer,
@@ -40,7 +40,6 @@ double runKernels(
     // index of the two eigenInterval buffers
     uint &in )
 {
-  double kernel_time_ms = 0;
   sycl::range<1> gws (length);
   sycl::range<1> lws (256);
 
@@ -52,7 +51,7 @@ double runKernels(
   in = 0;
   while (isComplete(eigenIntervals[in], length, tolerance)) {
 
-    auto event1 = q.submit([&] (sycl::handler &cgh) {
+    q.submit([&] (sycl::handler &cgh) {
       auto interval = eigenIntervalBuffer[in];
       cgh.parallel_for<class kernel0>(
         sycl::nd_range<1>(gws, lws), [=] (sycl::nd_item<1> item) {
@@ -66,15 +65,7 @@ double runKernels(
       }); 
     }); 
 
-    {
-      event1.wait();
-      // Get GPU execution time
-      auto start_time = event1.get_profiling_info<sycl::info::event_profiling::command_start>();
-      auto end_time = event1.get_profiling_info<sycl::info::event_profiling::command_end>();
-      kernel_time_ms += (end_time - start_time) / 1e6;
-    }
-
-    auto event2 = q.submit([&] (sycl::handler &cgh) {
+    q.submit([&] (sycl::handler &cgh) {
       auto interval_i = eigenIntervalBuffer[1-in];
       auto interval_o = eigenIntervalBuffer[in];
       cgh.parallel_for<class kernel1>(
@@ -91,20 +82,10 @@ double runKernels(
       }); 
     }); 
 
-    {
-      event2.wait();
-      // Get GPU execution time
-      auto start_time = event2.get_profiling_info<sycl::info::event_profiling::command_start>();
-      auto end_time = event2.get_profiling_info<sycl::info::event_profiling::command_end>();
-      kernel_time_ms += (end_time - start_time) / 1e6;
-    }
-
     in = 1 - in;
 
     q.memcpy(eigenIntervals[in], eigenIntervalBuffer[in], length*2*sizeof(float)).wait();
   }
-
-  return kernel_time_ms;
 }
 
 int main(int argc, char * argv[])
@@ -196,10 +177,8 @@ int main(int argc, char * argv[])
     printArray<float>("offDiagonal", offDiagonal, length-1, 1);
 #endif
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -227,7 +206,7 @@ double kernel_time_ms = 0;
   for(int i = 0; i < 2 && iterations != 1; i++)
   {
     // Arguments are set and execution call is enqueued on command buffer
-    kernel_time_ms += runKernels(
+    runKernels(
         q,
         diagonalBuffer,
         numEigenValuesIntervalBuffer,
@@ -248,7 +227,7 @@ double kernel_time_ms = 0;
 
   for(int i = 0; i < iterations; i++)
   {
-    kernel_time_ms += runKernels(
+    runKernels(
         q,
         diagonalBuffer,
         numEigenValuesIntervalBuffer,
@@ -264,7 +243,6 @@ double kernel_time_ms = 0;
   auto end = std::chrono::steady_clock::now();
   auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   std::cout << "Average kernel execution time " << (time * 1e-3f) / iterations << " (us)\n";
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
 
   // Verify results
   for(int i = 0 ; i < 2; ++i)

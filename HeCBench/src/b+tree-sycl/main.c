@@ -1776,10 +1776,8 @@ int main(int argc, char** argv)
   // ------------------------------------------------------------60
   // Create SYCL queue only once
   // ------------------------------------------------------------60
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -1959,7 +1957,7 @@ double kernel_time_ms = 0;
           }
 
           // kernel
-          kernel_time_ms += kernel_wrapper(  
+          kernel_wrapper(  
               q,
               records,
               records_elem, //records_mem,
@@ -2108,7 +2106,7 @@ double kernel_time_ms = 0;
           }
 
           // kernel
-          kernel_time_ms += kernel2_wrapper(
+          kernel2_wrapper(
               q,
               knodes,
               knodes_elem,
@@ -2172,7 +2170,6 @@ double kernel_time_ms = 0;
   // free remaining memory and exit
   // ------------------------------------------------------------60
 
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
   free(mem);
   return EXIT_SUCCESS;
 }

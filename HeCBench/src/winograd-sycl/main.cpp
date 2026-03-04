@@ -16,10 +16,8 @@ int main(int argc, char* argv[]) {
   // transformed filter
   WinogradConv2D_2x2_filter_transformation(C);
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -79,7 +77,7 @@ double kernel_time_ms = 0;
     double co_start = rtclock();
 
     if (gpu_run) {
-      auto event = q.submit([&] (sycl::handler &cgh) {
+      q.submit([&] (sycl::handler &cgh) {
         cgh.parallel_for<class winograd_conv2d>(
           sycl::nd_range<2>(gpu_gws, lws), [=] (sycl::nd_item<2> item) {
 
@@ -152,11 +150,7 @@ double kernel_time_ms = 0;
           }
         });
       });
-      event.wait();
-      // Get GPU execution time
-      auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-      auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-      kernel_time_ms += (end_time - start_time) / 1e6;
+
     }
 
     if (cpu_run) {
@@ -198,9 +192,6 @@ double kernel_time_ms = 0;
   printf("Total time: %lf s\n", end - start);
   printf("Ratio of co-execution time to total time: %.2lf%%\n",
          100.0 * co_time / (end - start));
-
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
-
 
   return 0;
 }

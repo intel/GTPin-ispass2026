@@ -67,10 +67,8 @@ int main(int argc, char** argv)
   // Declare timers
   std::chrono::high_resolution_clock::time_point t1, t2;
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -92,7 +90,7 @@ double kernel_time_ms = 0;
   for(int i=0;i<N;i++) {
     q.memset(d_out, 0, sizeof(int));
 
-    auto event = q.submit([&](sycl::handler& cgh) {
+    q.submit([&](sycl::handler& cgh) {
       cgh.parallel_for<class reduction_v0>(sycl::nd_range<1>(
         sycl::range<1>(global_work_size), sycl::range<1>(threads)), [=] (sycl::nd_item<1> item) {
         int sum = 0;
@@ -103,12 +101,6 @@ double kernel_time_ms = 0;
         atomicAdd(d_out[0],sum);
       });
     });
-
-    event.wait();
-    // Get GPU execution time
-    auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-    auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-    kernel_time_ms += (end_time - start_time) / 1e6;
   }
   q.wait();
 
@@ -134,7 +126,6 @@ double kernel_time_ms = 0;
   double times =  std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
   float GB=(float)arrayLength*sizeof(int)*N;
   std::cout << "The average performance of reduction is "<< 1.0E-09 * GB/times<<" GBytes/sec"<<std::endl;
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
 
   int sum;
   q.memcpy(&sum, d_out, sizeof(int)).wait();

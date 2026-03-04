@@ -29,7 +29,7 @@
 #define ROWS_HALO_STEPS       1
 #define COLUMNS_HALO_STEPS    1
 
-double convolutionRows(
+void convolutionRows(
     sycl::queue &q,
     float *dst,
     float *src,
@@ -46,7 +46,7 @@ double convolutionRows(
     sycl::range<2> lws (ROWS_BLOCKDIM_Y, ROWS_BLOCKDIM_X);
     sycl::range<2> gws (imageH, imageW / ROWS_RESULT_STEPS);
 
-    auto event = q.submit([&] (sycl::handler &cgh) {
+    q.submit([&] (sycl::handler &cgh) {
       sycl::local_accessor<float, 2>
         l_Data(sycl::range<2>{ROWS_BLOCKDIM_Y, (ROWS_RESULT_STEPS + 2 * ROWS_HALO_STEPS) * ROWS_BLOCKDIM_X}, cgh);
 
@@ -92,15 +92,9 @@ double convolutionRows(
         }
       });
     });
-
-    event.wait();
-    // Get GPU execution time
-    auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-    auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-    return (end_time - start_time) / 1e6; 
 }
 
-double convolutionColumns(
+void convolutionColumns(
     sycl::queue &q,
     float *dst,
     float *src,
@@ -117,7 +111,7 @@ double convolutionColumns(
     sycl::range<2> lws (COLUMNS_BLOCKDIM_Y, COLUMNS_BLOCKDIM_X);
     sycl::range<2> gws (imageH / COLUMNS_RESULT_STEPS, imageW);
 
-    auto event = q.submit([&] (sycl::handler &cgh) {
+    q.submit([&] (sycl::handler &cgh) {
       sycl::local_accessor<float, 2>
         l_Data(sycl::range<2>{COLUMNS_BLOCKDIM_X, (COLUMNS_RESULT_STEPS + 2 * COLUMNS_HALO_STEPS) * COLUMNS_BLOCKDIM_Y + 1}, cgh);
 
@@ -165,10 +159,4 @@ double convolutionColumns(
         }
       });
     });
-
-    event.wait();
-    // Get GPU execution time
-    auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-    auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-    return (end_time - start_time) / 1e6; 
 }

@@ -52,10 +52,8 @@ int main(int argc, char** argv)
   DTYPE* h_output = (DTYPE*) malloc(mem_size_output*i_img_count);
   DTYPE* d_output = (DTYPE*) malloc(mem_size_output*i_img_count);
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -78,7 +76,7 @@ double kernel_time_ms = 0;
   auto start = std::chrono::steady_clock::now();
 
   for (int n = 0; n < repeat; n++) {
-    auto event = q.submit([&] (sycl::handler &h) {
+    q.submit([&] (sycl::handler &h) {
       h.parallel_for<class maxpool3>(
       sycl::nd_range<3>(gws, lws), [=] (sycl::nd_item<3> item) {
         const int x = item.get_global_id(2);
@@ -100,12 +98,6 @@ double kernel_time_ms = 0;
         d_result[(((z * o_img_height) + y) * o_img_width) + x] = maxval;
       });
     });
-
-    event.wait();
-    // Get GPU execution time
-    auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-    auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-    kernel_time_ms += (end_time - start_time) / 1e6;
   }
 
   q.wait();
@@ -113,8 +105,6 @@ double kernel_time_ms = 0;
   auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   printf("Average kernel execution time: %f (s)\n", (time * 1e-9f) / repeat);
 
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
-  
   q.memcpy(d_output, d_result, mem_size_output*i_img_count).wait();
 
   // verification using the CPU results

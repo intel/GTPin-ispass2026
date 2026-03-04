@@ -163,10 +163,8 @@ int main(int argc, char* argv[])
 
   std::cout << "# Coordinates are read from file..." << std::endl;
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -189,7 +187,7 @@ double kernel_time_ms = 0;
   auto start = std::chrono::steady_clock::now();
 
   for (int n = 0; n < iteration; n++) {
-    auto event = q.submit([&](sycl::handler& cgh) {
+    q.submit([&](sycl::handler& cgh) {
       cgh.parallel_for<class inversek>(
         sycl::nd_range<1>(sycl::range<1>(global_work_size), sycl::range<1>(BLOCK_SIZE)),
         [=] (sycl::nd_item<1> item) {
@@ -269,19 +267,12 @@ double kernel_time_ms = 0;
         }
       });
     });
-
-    event.wait();
-    // Get GPU execution time
-    auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-    auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-    kernel_time_ms += (end_time - start_time) / 1e6;
   }
 
   q.wait();
   auto end = std::chrono::steady_clock::now();
   auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   std::cout << "Average kernel execution time " << (time * 1e-3f) / iteration << " (us)\n";
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
 
   q.memcpy(angle_out_h, angle_out_d, data_size * NUM_JOINTS * sizeof(float)).wait();
 

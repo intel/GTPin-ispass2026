@@ -42,10 +42,8 @@ int main(int argc, char **argv)
   for(unsigned int i = 0; i < imageW * imageH; i++)
     h_Input[i] = (float)(rand() % 16);
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -82,7 +80,7 @@ double kernel_time_ms = 0;
   auto start = std::chrono::steady_clock::now();
 
   for(int iter = 0; iter < numIterations; iter++){
-    kernel_time_ms += convolutionRows(
+    convolutionRows(
         q,
         d_Buffer,
         d_Input,
@@ -91,7 +89,7 @@ double kernel_time_ms = 0;
         imageH,
         imageW);
 
-    kernel_time_ms += convolutionColumns(
+    convolutionColumns(
         q,
         d_Output,
         d_Buffer,
@@ -131,8 +129,5 @@ double kernel_time_ms = 0;
   sycl::free(d_Kernel, q);
 
   printf("%s\n", L2norm < 1e-6 ? "PASS" : "FAIL");
-
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
-
   return 0;
 }

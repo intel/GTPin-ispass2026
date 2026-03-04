@@ -225,7 +225,7 @@ void fpc2_kernel (sycl::nd_item<1> &item, unsigned &compressable,
   }
 }
 
-double fpc (sycl::queue &q, const ulong* values, unsigned *cmp_size_hw,
+void fpc (sycl::queue &q, const ulong* values, unsigned *cmp_size_hw,
           const int values_size, const int wgs)
 {
   *cmp_size_hw = 0;
@@ -239,7 +239,7 @@ double fpc (sycl::queue &q, const ulong* values, unsigned *cmp_size_hw,
   sycl::range<1> gws (values_size);
   sycl::range<1> lws (wgs);
 
-  auto event = q.submit([&](sycl::handler &h) {
+  q.submit([&](sycl::handler &h) {
     sycl::local_accessor<unsigned, 0> compressable(h);
     h.parallel_for<class test1>(
       sycl::nd_range<1>(gws, lws), [=](sycl::nd_item<1> item) {
@@ -247,19 +247,12 @@ double fpc (sycl::queue &q, const ulong* values, unsigned *cmp_size_hw,
     });
   });
 
-  event.wait();
-  // Get GPU execution time
-  auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-  auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-  
   q.memcpy(cmp_size_hw, d_cmp_size, sizeof(unsigned)).wait();
   sycl::free(d_values, q);
   sycl::free(d_cmp_size, q);
-
-  return (end_time - start_time) / 1e6;
 }
 
-double fpc2 (sycl::queue &q, const ulong* values, unsigned *cmp_size_hw,
+void fpc2 (sycl::queue &q, const ulong* values, unsigned *cmp_size_hw,
            const int values_size, const int wgs)
 {
   *cmp_size_hw = 0;
@@ -273,7 +266,7 @@ double fpc2 (sycl::queue &q, const ulong* values, unsigned *cmp_size_hw,
   sycl::range<1> gws (values_size);
   sycl::range<1> lws (wgs);
 
-  auto event = q.submit([&](sycl::handler &h) {
+  q.submit([&](sycl::handler &h) {
     sycl::local_accessor<unsigned, 0> compressable (h);
     h.parallel_for<class test2>(
       sycl::nd_range<1>(gws, lws), [=](sycl::nd_item<1> item) {
@@ -281,16 +274,9 @@ double fpc2 (sycl::queue &q, const ulong* values, unsigned *cmp_size_hw,
     });
   });
 
-  event.wait();
-  // Get GPU execution time
-  auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-  auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-
   q.memcpy(cmp_size_hw, d_cmp_size, sizeof(unsigned)).wait();
   sycl::free(d_values, q);
   sycl::free(d_cmp_size, q);
-
-  return (end_time - start_time) / 1e6;
 }
 
 int main(int argc, char** argv) {
@@ -319,10 +305,8 @@ int main(int argc, char** argv) {
 
   unsigned cmp_size_hw; 
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -330,12 +314,12 @@ double kernel_time_ms = 0;
   bool ok = true;
  
   // warmup
-  kernel_time_ms += fpc(q, values, &cmp_size_hw, values_size, wgs);
+  fpc(q, values, &cmp_size_hw, values_size, wgs);
 
   auto start = std::chrono::high_resolution_clock::now();
 
   for (int i = 0; i < repeat; i++) {
-    kernel_time_ms += fpc(q, values, &cmp_size_hw, values_size, wgs);
+    fpc(q, values, &cmp_size_hw, values_size, wgs);
     if (cmp_size_hw != cmp_size) {
       printf("fpc failed %u != %u\n", cmp_size_hw, cmp_size);
       ok = false;
@@ -347,12 +331,12 @@ double kernel_time_ms = 0;
   printf("fpc: average device offload time %f (s)\n", (time * 1e-9f) / repeat);
 
   // warmup
-  kernel_time_ms += fpc2(q, values, &cmp_size_hw, values_size, wgs);
+  fpc2(q, values, &cmp_size_hw, values_size, wgs);
 
   start = std::chrono::high_resolution_clock::now();
 
   for (int i = 0; i < repeat; i++) {
-    kernel_time_ms += fpc2(q, values, &cmp_size_hw, values_size, wgs);
+    fpc2(q, values, &cmp_size_hw, values_size, wgs);
     if (cmp_size_hw != cmp_size) {
       printf("fpc2 failed %u != %u\n", cmp_size_hw, cmp_size);
       ok = false;
@@ -363,7 +347,6 @@ double kernel_time_ms = 0;
   end = std::chrono::high_resolution_clock::now();
   time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   printf("fpc2: average device offload time %f (s)\n", (time * 1e-9f) / repeat);
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
 
   printf("%s\n", ok ? "PASS" : "FAIL");
 

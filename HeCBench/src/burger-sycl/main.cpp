@@ -68,10 +68,8 @@ int main(int argc, char* argv[])
     }
   }
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -103,7 +101,7 @@ sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::i
 
   for(int itr = 0; itr < num_itrs; itr++) {
 
-    auto event1 = q.submit([&] (sycl::handler &cgh) {
+    q.submit([&] (sycl::handler &cgh) {
       cgh.parallel_for<class core>(
         sycl::nd_range<2>(gws, lws), [=] (sycl::nd_item<2> item) {
         int i = item.get_global_id(0) + 1;
@@ -124,16 +122,8 @@ sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::i
       });
     });
 
-    {
-      event1.wait();
-      // Get GPU execution time
-      auto start_time = event1.get_profiling_info<sycl::info::event_profiling::command_start>();
-      auto end_time = event1.get_profiling_info<sycl::info::event_profiling::command_end>();
-      kernel_time_ms += (end_time - start_time) / 1e6;
-    }
-    
     // Boundary conditions
-    auto event2 = q.submit([&] (sycl::handler &cgh) {
+    q.submit([&] (sycl::handler &cgh) {
       cgh.parallel_for<class bound_h>(
         sycl::nd_range<1>(gws2, lws2), [=] (sycl::nd_item<1> item) {
         int i = item.get_global_id(0);
@@ -146,15 +136,7 @@ sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::i
       });
     });
 
-    {
-      event2.wait();
-      // Get GPU execution time
-      auto start_time = event2.get_profiling_info<sycl::info::event_profiling::command_start>();
-      auto end_time = event2.get_profiling_info<sycl::info::event_profiling::command_end>();
-      kernel_time_ms += (end_time - start_time) / 1e6;
-    }
-
-    auto event3 = q.submit([&] (sycl::handler &cgh) {
+    q.submit([&] (sycl::handler &cgh) {
       cgh.parallel_for<class bound_v>(
         sycl::nd_range<1>(gws3, lws3), [=] (sycl::nd_item<1> item) {
         int j = item.get_global_id(0);
@@ -166,17 +148,9 @@ sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::i
         }
       });
     });
-  
-    {
-      event3.wait();
-      // Get GPU execution time
-      auto start_time = event3.get_profiling_info<sycl::info::event_profiling::command_start>();
-      auto end_time = event3.get_profiling_info<sycl::info::event_profiling::command_end>();
-      kernel_time_ms += (end_time - start_time) / 1e6;
-    }
 
     // Updating older values to newer ones
-    auto event4 = q.submit([&] (sycl::handler &cgh) {
+    q.submit([&] (sycl::handler &cgh) {
       cgh.parallel_for<class update>(
         sycl::nd_range<1>(gws4, lws4), [=] (sycl::nd_item<1> item) {
         int i = item.get_global_id(0);
@@ -186,26 +160,13 @@ sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::i
         }
       });
     });
-
-    {
-      event4.wait();
-      // Get GPU execution time
-      auto start_time = event4.get_profiling_info<sycl::info::event_profiling::command_start>();
-      auto end_time = event4.get_profiling_info<sycl::info::event_profiling::command_end>();
-      kernel_time_ms += (end_time - start_time) / 1e6;
-    }
-
   }
-
-
 
   q.wait();
   auto end = std::chrono::steady_clock::now();
   auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   printf("Total kernel execution time %f (s)\n", time * 1e-9f);
-  
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
-  
+
   q.memcpy(du, d_u, grid_size);
   q.memcpy(dv, d_v, grid_size);
   q.wait();

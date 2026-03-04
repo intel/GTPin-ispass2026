@@ -2,7 +2,7 @@
 #define KERNEL_WRAPPER_H
 
 #include <sycl/sycl.hpp>
-double 
+void 
 kernel_wrapper(	sycl::queue &q,
 		record *records,
 		long records_mem,

@@ -15,20 +15,20 @@ def parse_and_validate_args() -> argparse.Namespace:
                         default="scripts/specs.yaml",
                         help="supply your own specs yaml file")
     parser.add_argument("--out_csv", type=str,
-                        default="amd-full-instrcount-results.csv",
+                        default="nvidia-full-opcode-hist-results.csv",
                         help="output CSV file path")
 
     args = parser.parse_args()
     return args
 
 
-RESULT_PKLE_FILE_NAME = "amd-full-instrcount-results.pkl"
+RESULT_PKLE_FILE_NAME = "nvidia-full-opcode-hist-results.pkl"
 
 
 CSV_KEYS = [
     "Number of Instructions",
-    "Instrumented Luthier Kernel Runtime (us)",
-    "Un-instrumented with Luthier-framework, Luthier Kernel Runtime (us)",
+    "Instrumented NVBIT Kernel Runtime (us)",
+    "Un-instrumented with NVBIT-framework, NVBIT Kernel Runtime (us)",
 ]
 
 

@@ -30,10 +30,8 @@ int ViterbiGPU(float &viterbiProb,
   float maxProbNew[nState];
   int path[(nObs-1)*nState];
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -62,7 +60,7 @@ double kernel_time_ms = 0;
   // main iteration of Viterbi algorithm
   for (int t = 1; t < nObs; t++) // for every input observation
   { 
-    auto event = q.submit([&] (sycl::handler &h) {
+    q.submit([&] (sycl::handler &h) {
       h.parallel_for<class hmm>(
         sycl::nd_range<1>(gws, lws), [=] (sycl::nd_item<1> item) {
         // find the most probable previous state leading to iState
@@ -85,12 +83,6 @@ double kernel_time_ms = 0;
       });
     });
 
-    event.wait();
-    // Get GPU execution time
-    auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-    auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-    kernel_time_ms += (end_time - start_time) / 1e6;
-    
     q.memcpy(d_maxProbOld, d_maxProbNew, sizeof(float)*nState);
   }
 
@@ -98,7 +90,6 @@ double kernel_time_ms = 0;
   auto end = std::chrono::steady_clock::now();
   auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   printf("Device execution time of Viterbi iterations %f (s)\n", time * 1e-9f);
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
 
   q.memcpy(maxProbNew, d_maxProbNew, sizeof(float)*nState);
   q.memcpy(path, d_path, sizeof(int)*(nObs-1)*nState);

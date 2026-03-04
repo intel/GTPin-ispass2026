@@ -4,7 +4,7 @@
 #include "timer.h"
 #include "kernel2_wrapper.h"
 
-double 
+void 
 kernel2_wrapper(
     sycl::queue &q,
     knode *knodes,
@@ -68,19 +68,13 @@ kernel2_wrapper(
   long long kernel_start = get_time();
 
   // findRangeK kernel
-  auto event = q.submit([&](sycl::handler& cgh) {
+  q.submit([&](sycl::handler& cgh) {
     cgh.parallel_for<class findRangeK>(sycl::nd_range<1>(
       sycl::range<1>(global_work_size[0]),
       sycl::range<1>(local_work_size[0])), [=] (sycl::nd_item<1> item) {
       #include "findRangeK.sycl"
     });
-  });
-  
-  event.wait();
-  // Get GPU execution time
-  auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-  auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-  
+  }).wait();
 
   long long kernel_end = get_time();
   printf("Kernel execution time: %f (us)\n", (float)(kernel_end-kernel_start));
@@ -105,7 +99,5 @@ kernel2_wrapper(
   for (int i = 0; i < count; i++)
     printf("reclength[%d] = %d\n", i, reclength[i]);
 #endif
-
-  return (end_time - start_time) / 1e6;
 }
 

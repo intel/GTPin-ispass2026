@@ -38,7 +38,7 @@ void convolutionColumnHost(
 );
 
 
-double convolutionRows(
+void convolutionRows(
     sycl::queue &q,
     float *d_Dst,
     float *d_Src,
@@ -48,7 +48,7 @@ double convolutionRows(
     const int pitch
 );
 
-double convolutionColumns(
+void convolutionColumns(
     sycl::queue &q,
     float *d_Dst,
     float *d_Src,
