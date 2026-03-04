@@ -27,14 +27,10 @@ RESULT_PKLE_FILE_NAME = "intel-full-opcodeprof-results.pkl"
 
 CSV_KEYS = [
     "Number of Instructions - LLI Opcodeprof",
-    "Un-instrumented SYCL Kernel Runtime (us)",
-    "Instrumented SYCL Kernel Runtime - LLI Opcodeprof (us)",
+    "Un-instrumented APP Kernel Runtime (us)",
     "Instrumented GTPin Kernel Runtime - LLI Opcodeprof (us)",
     "Number of Instructions - HLI Opcodeprof",
-    "Instrumented SYCL Kernel Runtime - HLI Opcodeprof (us)",
     "Instrumented GTPin Kernel Runtime - HLI Opcodeprof (us)",
-    "Un-instrumented with GTPin-framework, SYCL Kernel Runtime (us)",
-    "Un-instrumented with GTPin-framework, GTPin Kernel Runtime (us)",
 ]
 
 
@@ -43,12 +39,13 @@ def main():
     benchmark_cfg = read_yaml_cfg(args.specs_yaml)
 
     benchmarks = benchmark_cfg["Opcode"]["benchmarks"]
+    programming_model = "sycl-intel"
 
     # Collect rows for CSV
     rows = []
 
     for bench in benchmarks:
-        programming_model = "sycl-intel"
+
         benchmark_folder = os.path.join(
             args.hecbench_dir, "src", f"{bench}-sycl"
         )

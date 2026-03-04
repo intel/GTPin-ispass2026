@@ -1,6 +1,11 @@
 *~
+.vscode/*
+.venv/*
+
 GTPin/Profilers/*
 GTPIN_PROFILE*
+
 *.tar.*
 *.pkl
 *.pyc
+*.csv

@@ -16,13 +16,13 @@ def parse_and_validate_args() -> argparse.Namespace:
     parser.add_argument(
         "--hecbench_dir",
         type=str,
-        default="/work/HeCBench",
+        default="./HeCBench",
         help="location of the HeCBench repo",
     )
     parser.add_argument(
         "--nvbit_opcode_hist_tool_path",
         type=str,
-        default="/work/nvbit_release/tools/opcode_hist/opcode_hist.so",
+        default="./nvbit_release/tools/opcode_hist/opcode_hist.so",
         help="location of the nvbit opcode hist tool",
     )
     parser.add_argument(
@@ -98,84 +98,84 @@ def nvbit_get_tool_results(
 def main():
     args = parse_and_validate_args()
     benchmark_cfg = read_yaml_cfg(args.specs_yaml)
+    programming_model = "sycl-nvidia"
 
-    for bench in benchmark_cfg["InstrCount"]["benchmarks"]:
-        for programming_model in benchmark_cfg["InstrCount"]["programming_models"]:
-            out = {}
+    for bench in benchmark_cfg["Opcode"]["benchmarks"]:
+        out = {}
 
-            cfgs = benchmark_cfg["HeCBench"][bench]["programming_models"][programming_model]
-            run_flags = eval(cfgs["run_command"])  # assumed trusted YAML
+        cfgs = benchmark_cfg["HeCBench"][bench]["programming_models"][programming_model]
+        run_flags = eval(cfgs["run_command"])  # assumed trusted YAML
 
-            benchmark_folder = os.path.join(
-                args.hecbench_dir, "src", f"{bench}-{programming_model}"
+        benchmark_folder = os.path.join(
+            args.hecbench_dir, "src", f"{bench}-{programming_model}"
+        )
+
+        result_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
+        if os.path.exists(result_path) and not args.overwrite_results:
+            print(f"Skipping {bench}-{programming_model} (results already exist).")
+            continue
+
+        # ------------------------------------------------------------------
+        # Instrumented run
+        # ------------------------------------------------------------------
+        env_vars = os.environ.copy()
+        env_vars["LD_PRELOAD"] = args.nvbit_opcode_hist_tool_path
+        env_vars["COUNT_WARP_LEVEL"] = "0"
+        env_vars["MANGLED_NAMES"] = "0"
+
+        print(
+            f"Running instrumented {bench}-{programming_model}: {' '.join(run_flags)}"
+        )
+
+        rc, stdout, stderr = capture_subprocess_output(
+            args=run_flags,
+            cwd=benchmark_folder,
+            env=env_vars,
+            dump_stdout_stderr=args.dump_stdout_stderr,
+        )
+        if rc:
+            raise ChildProcessError("Instrumented run failed.")
+
+        instr_cnt, nvbit_runtime = (
+            nvbit_get_tool_results(stdout, stderr, True, True)
+        )
+
+        out["Number of Instructions"] = instr_cnt
+        out["Instrumented NVBIT Kernel Runtime (us)"] = nvbit_runtime
+
+        # ------------------------------------------------------------------
+        # Un-instrumented with NVBIT framework
+        # ------------------------------------------------------------------
+        env_vars["INSTR_END"] = "0"
+
+        print(
+            f"Running un-instrumented with NVBIT framework "
+            f"{bench}-{programming_model}"
+        )
+
+        rc, stdout, stderr = capture_subprocess_output(
+            args=run_flags,
+            cwd=benchmark_folder,
+            env=env_vars,
+            dump_stdout_stderr=args.dump_stdout_stderr,
+        )
+        if rc:
+            raise ChildProcessError(
+                "Un-instrumented with NVBIT framework run failed."
             )
 
-            result_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
-            if os.path.exists(result_path) and not args.overwrite_results:
-                print(f"Skipping {bench}-{programming_model} (results already exist).")
-                continue
+        _, nvbit_runtime = (
+            nvbit_get_tool_results(stdout, stderr, True, False)
+        )
 
-            # ------------------------------------------------------------------
-            # Instrumented run
-            # ------------------------------------------------------------------
-            env_vars = os.environ.copy()
-            env_vars["LD_PRELOAD"] = args.nvbit_opcode_hist_tool_path
-            env_vars["COUNT_WARP_LEVEL"] = "0"
-            env_vars["MANGLED_NAMES"] = "0"
+        out[
+            "Un-instrumented with NVBIT-framework, NVBIT Kernel Runtime (us)"
+        ] = nvbit_runtime
 
-            print(
-                f"Running instrumented {bench}-{programming_model}: {' '.join(run_flags)}"
-            )
+        print(out)
 
-            rc, stdout, stderr = capture_subprocess_output(
-                args=run_flags,
-                cwd=benchmark_folder,
-                env=env_vars,
-                dump_stdout_stderr=args.dump_stdout_stderr,
-            )
-            if rc:
-                raise ChildProcessError("Instrumented run failed.")
-
-            instr_cnt, nvbit_runtime = (
-                nvbit_get_tool_results(stdout, stderr, True, True)
-            )
-
-            out["Number of Instructions"] = instr_cnt
-            out["Instrumented NVBIT Kernel Runtime (us)"] = nvbit_runtime
-
-            # ------------------------------------------------------------------
-            # Un-instrumented with NVBIT framework
-            # ------------------------------------------------------------------
-            env_vars["INSTR_END"] = "0"
-
-            print(
-                f"Running un-instrumented with NVBIT framework "
-                f"{bench}-{programming_model}"
-            )
-
-            rc, stdout, stderr = capture_subprocess_output(
-                args=run_flags,
-                cwd=benchmark_folder,
-                env=env_vars,
-                dump_stdout_stderr=args.dump_stdout_stderr,
-            )
-            if rc:
-                raise ChildProcessError(
-                    "Un-instrumented with NVBIT framework run failed."
-                )
-
-            _, nvbit_runtime = (
-                nvbit_get_tool_results(stdout, stderr, True, False)
-            )
-
-            out[
-                "Un-instrumented with NVBIT-framework, NVBIT Kernel Runtime (us)"
-            ] = nvbit_runtime
-
-            print(out)
-
-            with open(result_path, "wb") as f:
-                pickle.dump(out, f, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(result_path, "wb") as f:
+            pickle.dump(out, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         print(f"Ran {bench} benchmarks.")
 

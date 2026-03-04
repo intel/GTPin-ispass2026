@@ -9,7 +9,7 @@ import csv
 def parse_and_validate_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("Instruction count runner script")
     parser.add_argument("--hecbench_dir", type=str,
-                        default="/work/HeCBench",
+                        default="./HeCBench",
                         help="location of the HeCBench repo")
     parser.add_argument("--specs_yaml", type=str,
                         default="scripts/specs.yaml",
@@ -36,37 +36,36 @@ def main():
     args = parse_and_validate_args()
     benchmark_cfg = read_yaml_cfg(args.specs_yaml)
 
-    benchmarks = benchmark_cfg["InstrCount"]["benchmarks"]
-    programming_models = benchmark_cfg["InstrCount"]["programming_models"]
+    benchmarks = benchmark_cfg["Opcode"]["benchmarks"]
+    programming_model = "sycl-nvidia"
 
     # Collect rows for CSV
     rows = []
 
     for bench in benchmarks:
-        for programming_model in programming_models:
-            benchmark_folder = os.path.join(
-                args.hecbench_dir, "src", f"{bench}-{programming_model}"
+        benchmark_folder = os.path.join(
+            args.hecbench_dir, "src", f"{bench}-{programming_model}"
+        )
+        pkl_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
+
+        if not os.path.isfile(pkl_path):
+            raise FileNotFoundError(
+                f"Missing results pickle: {pkl_path}"
             )
-            pkl_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
 
-            if not os.path.isfile(pkl_path):
-                raise FileNotFoundError(
-                    f"Missing results pickle: {pkl_path}"
-                )
+        with open(pkl_path, "rb") as f:
+            data_point = pickle.load(f)
 
-            with open(pkl_path, "rb") as f:
-                data_point = pickle.load(f)
+        row = {
+            "benchmark": bench,
+            "programming_model": programming_model,
+        }
 
-            row = {
-                "benchmark": bench,
-                "programming_model": programming_model,
-            }
+        # Extract requested keys (leave blank if missing)
+        for k in CSV_KEYS:
+            row[k] = data_point.get(k, "")
 
-            # Extract requested keys (leave blank if missing)
-            for k in CSV_KEYS:
-                row[k] = data_point.get(k, "")
-
-            rows.append(row)
+        rows.append(row)
 
     # Write CSV
     fieldnames = ["benchmark", "programming_model"] + CSV_KEYS

@@ -9,13 +9,13 @@ from common import read_yaml_cfg
 def parse_and_validate_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("HeC benchmark compilation script")
     parser.add_argument("--hecbench_dir", type=str,
-                        default="/work/HeCBench",
+                        default="./HeCBench",
                         help="location of the HeCBench repo")
     parser.add_argument("--action", type=str, choices=["clean", "build"], default="build",
                         help="The action to perform")
     parser.add_argument("--programming_model", type=str,
-                        default="sycl",
-                        help="Programming model to compile/clean (single value). Default: sycl")
+                        default="sycl-intel",
+                        help="Programming model to compile/clean (single value). Default: sycl-intel")
     return parser.parse_args()
 
 

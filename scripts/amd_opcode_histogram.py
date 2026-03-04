@@ -97,83 +97,83 @@ def luthier_get_instr_count_tool_results(
 def main():
     args = parse_and_validate_args()
     benchmark_cfg = read_yaml_cfg(args.specs_yaml)
+    programming_model = "sycl-amd"
 
-    for bench in benchmark_cfg["InstrCount"]["benchmarks"]:
-        for programming_model in benchmark_cfg["InstrCount"]["programming_models"]:
-            out = {}
+    for bench in benchmark_cfg["Opcode"]["benchmarks"]:
+        out = {}
 
-            cfgs = benchmark_cfg["HeCBench"][bench]["programming_models"][programming_model]
-            run_flags = eval(cfgs["run_command"])  # assumed trusted YAML
+        cfgs = benchmark_cfg["HeCBench"][bench]["programming_models"][programming_model]
+        run_flags = eval(cfgs["run_command"])  # assumed trusted YAML
 
-            benchmark_folder = os.path.join(
-                args.hecbench_dir, "src", f"{bench}-{programming_model}"
+        benchmark_folder = os.path.join(
+            args.hecbench_dir, "src", f"{bench}-{programming_model}"
+        )
+
+        result_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
+        if os.path.exists(result_path) and not args.overwrite_results:
+            print(f"Skipping {bench}-{programming_model} (results already exist).")
+            continue
+
+        # ------------------------------------------------------------------
+        # Instrumented run
+        # ------------------------------------------------------------------
+        env_vars = os.environ.copy()
+        env_vars["LD_PRELOAD"] = args.luthier_opcode_histogram_tool_path
+        env_vars["HIP_ENABLE_DEFERRED_LOADING"] = "0"
+
+        print(
+            f"Running instrumented {bench}-{programming_model}: {' '.join(run_flags)}"
+        )
+
+        rc, stdout, stderr = capture_subprocess_output(
+            args=run_flags,
+            cwd=benchmark_folder,
+            env=env_vars,
+            dump_stdout_stderr=args.dump_stdout_stderr,
+        )
+        if rc:
+            raise ChildProcessError("Instrumented run failed.")
+
+        instr_cnt, luthier_runtime = (
+            luthier_get_instr_count_tool_results(stdout, stderr, True, True)
+        )
+
+        out["Number of Instructions"] = instr_cnt
+        out["Instrumented Luthier Kernel Runtime (us)"] = luthier_runtime
+
+        # ------------------------------------------------------------------
+        # Un-instrumented with Luthier framework
+        # ------------------------------------------------------------------
+        env_vars["LUTHIER_ARGS"] = "--instr-end-interval=0"
+
+        print(
+            f"Running un-instrumented with Luthier framework "
+            f"{bench}-{programming_model}"
+        )
+
+        rc, stdout, stderr = capture_subprocess_output(
+            args=run_flags,
+            cwd=benchmark_folder,
+            env=env_vars,
+            dump_stdout_stderr=args.dump_stdout_stderr,
+        )
+        if rc:
+            raise ChildProcessError(
+                "Un-instrumented with Luthier framework run failed."
             )
 
-            result_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
-            if os.path.exists(result_path) and not args.overwrite_results:
-                print(f"Skipping {bench}-{programming_model} (results already exist).")
-                continue
+        _, luthier_runtime = (
+            luthier_get_instr_count_tool_results(stdout, stderr, True, False)
+        )
 
-            # ------------------------------------------------------------------
-            # Instrumented run
-            # ------------------------------------------------------------------
-            env_vars = os.environ.copy()
-            env_vars["LD_PRELOAD"] = args.luthier_opcode_histogram_tool_path
-            env_vars["HIP_ENABLE_DEFERRED_LOADING"] = "0"
+        out[
+            "Un-instrumented with Luthier-framework, Luthier Kernel Runtime (us)"
+        ] = luthier_runtime
 
-            print(
-                f"Running instrumented {bench}-{programming_model}: {' '.join(run_flags)}"
-            )
+        print(out)
 
-            rc, stdout, stderr = capture_subprocess_output(
-                args=run_flags,
-                cwd=benchmark_folder,
-                env=env_vars,
-                dump_stdout_stderr=args.dump_stdout_stderr,
-            )
-            if rc:
-                raise ChildProcessError("Instrumented run failed.")
-
-            instr_cnt, luthier_runtime = (
-                luthier_get_instr_count_tool_results(stdout, stderr, True, True)
-            )
-
-            out["Number of Instructions"] = instr_cnt
-            out["Instrumented Luthier Kernel Runtime (us)"] = luthier_runtime
-
-            # ------------------------------------------------------------------
-            # Un-instrumented with Luthier framework
-            # ------------------------------------------------------------------
-            env_vars["LUTHIER_ARGS"] = "--instr-end-interval=0"
-
-            print(
-                f"Running un-instrumented with Luthier framework "
-                f"{bench}-{programming_model}"
-            )
-
-            rc, stdout, stderr = capture_subprocess_output(
-                args=run_flags,
-                cwd=benchmark_folder,
-                env=env_vars,
-                dump_stdout_stderr=args.dump_stdout_stderr,
-            )
-            if rc:
-                raise ChildProcessError(
-                    "Un-instrumented with Luthier framework run failed."
-                )
-
-            _, luthier_runtime = (
-                luthier_get_instr_count_tool_results(stdout, stderr, True, False)
-            )
-
-            out[
-                "Un-instrumented with Luthier-framework, Luthier Kernel Runtime (us)"
-            ] = luthier_runtime
-
-            print(out)
-
-            with open(result_path, "wb") as f:
-                pickle.dump(out, f, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(result_path, "wb") as f:
+            pickle.dump(out, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         print(f"Ran {bench} benchmarks.")
 
