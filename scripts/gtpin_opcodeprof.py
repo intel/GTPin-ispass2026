@@ -117,135 +117,135 @@ def main():
     tools_path = os.path.join(args.gtpin_profiler_path, "Examples", "build")
     instrument_per_ins_knob = "--instrument_per_ins"
 
-    for bench in benchmark_cfg["Opcodeprof"]["benchmarks"]:
-        for programming_model in benchmark_cfg["Opcodeprof"]["programming_models"]:
-            out = {}
+    for bench in benchmark_cfg["Opcode"]["benchmarks"]:
+        programming_model = "sycl-intel"
+        out = {}
 
-            cfgs = benchmark_cfg["HeCBench"][bench]["programming_models"][programming_model]
-            run_flags = eval(cfgs["run_command"])  # assumed trusted YAML
+        cfgs = benchmark_cfg["HeCBench"][bench]["programming_models"][programming_model]
+        run_flags = eval(cfgs["run_command"])  # assumed trusted YAML
 
-            benchmark_folder = os.path.join(
-                args.hecbench_dir, "src", f"{bench}-sycl"
+        benchmark_folder = os.path.join(
+            args.hecbench_dir, "src", f"{bench}-sycl"
+        )
+
+        result_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
+        if os.path.exists(result_path) and not args.overwrite_results:
+            print(f"Skipping {bench}-sycl (results already exist).")
+            continue
+
+        # ------------------------------------------------------------------
+        # Un-instrumented run
+        # ------------------------------------------------------------------
+        env_vars = os.environ.copy()
+        print(
+            f"Running un-instrumented {bench}-sycl: {' '.join(run_flags)}"
+        )
+
+        rc, stdout, stderr = capture_subprocess_output(
+            args=run_flags,
+            cwd=benchmark_folder,
+            env=env_vars,
+            dump_stdout_stderr=args.dump_stdout_stderr,
+        )
+        if rc and bench != "hmm":
+            raise ChildProcessError("Un-instrumented run failed.")
+
+        _, sycl_runtime, _ = gtpin_get_opcodeprof_tool_results(
+            stdout, stderr, tool_run=False, instrumented=False
+        )
+        out["Un-instrumented SYCL Kernel Runtime (us)"] = sycl_runtime
+
+        # ------------------------------------------------------------------
+        # Instrumented run - LLI Opcodeprof
+        # ------------------------------------------------------------------
+        # Run with GTPin framework with instrumentation per instruction
+        tool_path = os.path.join(tools_path, "opcodeprof.so")
+        gtpin_instrumented_run_flags = [gtpin_exe_path, "-t", tool_path, instrument_per_ins_knob, "--"] + list(run_flags)
+        print(
+            f"Running instrumented {bench}-sycl: {' '.join(gtpin_instrumented_run_flags)}"
+        )
+
+        rc, stdout, stderr = capture_subprocess_output(
+            args=gtpin_instrumented_run_flags,
+            cwd=benchmark_folder,
+            env=env_vars,
+            dump_stdout_stderr=args.dump_stdout_stderr,
+        )
+        if rc and bench != "hmm":
+            raise ChildProcessError("Instrumented run failed.")
+
+        instr_cnt, sycl_runtime, gtpin_runtime = (
+            gtpin_get_opcodeprof_tool_results(stdout, stderr, True, True)
+        )
+
+        out["Number of Instructions - LLI Opcodeprof"] = instr_cnt
+        out["Instrumented SYCL Kernel Runtime - LLI Opcodeprof (us)"] = sycl_runtime
+        out["Instrumented GTPin Kernel Runtime - LLI Opcodeprof (us)"] = gtpin_runtime
+
+        # ------------------------------------------------------------------
+        # Instrumented run - HLI Opcodeprof
+        # ------------------------------------------------------------------
+        # Run with GTPin framework with instrumentation per instruction
+        tool_path = os.path.join(tools_path, "hlif_opcodeprof.so")
+        gtpin_instrumented_run_flags = [gtpin_exe_path, "-t", tool_path, instrument_per_ins_knob, "--"] + list(run_flags)
+        print(
+            f"Running instrumented {bench}-sycl: {' '.join(gtpin_instrumented_run_flags)}"
+        )
+
+        rc, stdout, stderr = capture_subprocess_output(
+            args=gtpin_instrumented_run_flags,
+            cwd=benchmark_folder,
+            env=env_vars,
+            dump_stdout_stderr=args.dump_stdout_stderr,
+        )
+        if rc and bench != "hmm":
+            raise ChildProcessError("Instrumented run failed.")
+
+        instr_cnt, sycl_runtime, gtpin_runtime = (
+            gtpin_get_opcodeprof_tool_results(stdout, stderr, True, True)
+        )
+
+        out["Number of Instructions - HLI Opcodeprof"] = instr_cnt
+        out["Instrumented SYCL Kernel Runtime - HLI Opcodeprof (us)"] = sycl_runtime
+        out["Instrumented GTPin Kernel Runtime - HLI Opcodeprof (us)"] = gtpin_runtime
+
+        # ------------------------------------------------------------------
+        # Un-instrumented with GTPin framework
+        # ------------------------------------------------------------------
+        # Run with GTPin framework but execute original module (no instrumentation)
+        gtpin_uninstrumented_run_flags = [gtpin_exe_path, "-t", tool_path, "--run_original_module", "--"] + list(run_flags)
+
+        print(
+            f"Running un-instrumented with GTPin framework "
+            f"{bench}-sycl"
+        )
+
+        rc, stdout, stderr = capture_subprocess_output(
+            args=gtpin_uninstrumented_run_flags,
+            cwd=benchmark_folder,
+            env=env_vars,
+            dump_stdout_stderr=args.dump_stdout_stderr,
+        )
+        if rc and bench != "hmm":
+            raise ChildProcessError(
+                "Un-instrumented with GTPin framework run failed."
             )
 
-            result_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
-            if os.path.exists(result_path) and not args.overwrite_results:
-                print(f"Skipping {bench}-sycl (results already exist).")
-                continue
+        _, sycl_runtime, gtpin_runtime = (
+            gtpin_get_opcodeprof_tool_results(stdout, stderr, True, False)
+        )
 
-            # ------------------------------------------------------------------
-            # Un-instrumented run
-            # ------------------------------------------------------------------
-            env_vars = os.environ.copy()
-            print(
-                f"Running un-instrumented {bench}-sycl: {' '.join(run_flags)}"
-            )
+        out[
+            "Un-instrumented with GTPin-framework, SYCL Kernel Runtime (us)"
+        ] = sycl_runtime
+        out[
+            "Un-instrumented with GTPin-framework, GTPin Kernel Runtime (us)"
+        ] = gtpin_runtime
 
-            rc, stdout, stderr = capture_subprocess_output(
-                args=run_flags,
-                cwd=benchmark_folder,
-                env=env_vars,
-                dump_stdout_stderr=args.dump_stdout_stderr,
-            )
-            if rc and bench != "hmm":
-                raise ChildProcessError("Un-instrumented run failed.")
+        print(out)
 
-            _, sycl_runtime, _ = gtpin_get_opcodeprof_tool_results(
-                stdout, stderr, tool_run=False, instrumented=False
-            )
-            out["Un-instrumented SYCL Kernel Runtime (us)"] = sycl_runtime
-
-            # ------------------------------------------------------------------
-            # Instrumented run - LLI Opcodeprof
-            # ------------------------------------------------------------------
-            # Run with GTPin framework with instrumentation per instruction
-            tool_path = os.path.join(tools_path, "opcodeprof.so")
-            gtpin_instrumented_run_flags = [gtpin_exe_path, "-t", tool_path, instrument_per_ins_knob, "--"] + list(run_flags)
-            print(
-                f"Running instrumented {bench}-sycl: {' '.join(gtpin_instrumented_run_flags)}"
-            )
-
-            rc, stdout, stderr = capture_subprocess_output(
-                args=gtpin_instrumented_run_flags,
-                cwd=benchmark_folder,
-                env=env_vars,
-                dump_stdout_stderr=args.dump_stdout_stderr,
-            )
-            if rc and bench != "hmm":
-                raise ChildProcessError("Instrumented run failed.")
-
-            instr_cnt, sycl_runtime, gtpin_runtime = (
-                gtpin_get_opcodeprof_tool_results(stdout, stderr, True, True)
-            )
-
-            out["Number of Instructions - LLI Opcodeprof"] = instr_cnt
-            out["Instrumented SYCL Kernel Runtime - LLI Opcodeprof (us)"] = sycl_runtime
-            out["Instrumented GTPin Kernel Runtime - LLI Opcodeprof (us)"] = gtpin_runtime
-
-            # ------------------------------------------------------------------
-            # Instrumented run - HLI Opcodeprof
-            # ------------------------------------------------------------------
-            # Run with GTPin framework with instrumentation per instruction
-            tool_path = os.path.join(tools_path, "hlif_opcodeprof.so")
-            gtpin_instrumented_run_flags = [gtpin_exe_path, "-t", tool_path, instrument_per_ins_knob, "--"] + list(run_flags)
-            print(
-                f"Running instrumented {bench}-sycl: {' '.join(gtpin_instrumented_run_flags)}"
-            )
-
-            rc, stdout, stderr = capture_subprocess_output(
-                args=gtpin_instrumented_run_flags,
-                cwd=benchmark_folder,
-                env=env_vars,
-                dump_stdout_stderr=args.dump_stdout_stderr,
-            )
-            if rc and bench != "hmm":
-                raise ChildProcessError("Instrumented run failed.")
-
-            instr_cnt, sycl_runtime, gtpin_runtime = (
-                gtpin_get_opcodeprof_tool_results(stdout, stderr, True, True)
-            )
-
-            out["Number of Instructions - HLI Opcodeprof"] = instr_cnt
-            out["Instrumented SYCL Kernel Runtime - HLI Opcodeprof (us)"] = sycl_runtime
-            out["Instrumented GTPin Kernel Runtime - HLI Opcodeprof (us)"] = gtpin_runtime
-
-            # ------------------------------------------------------------------
-            # Un-instrumented with GTPin framework
-            # ------------------------------------------------------------------
-            # Run with GTPin framework but execute original module (no instrumentation)
-            gtpin_uninstrumented_run_flags = [gtpin_exe_path, "-t", tool_path, "--run_original_module", "--"] + list(run_flags)
-
-            print(
-                f"Running un-instrumented with GTPin framework "
-                f"{bench}-sycl"
-            )
-
-            rc, stdout, stderr = capture_subprocess_output(
-                args=gtpin_uninstrumented_run_flags,
-                cwd=benchmark_folder,
-                env=env_vars,
-                dump_stdout_stderr=args.dump_stdout_stderr,
-            )
-            if rc and bench != "hmm":
-                raise ChildProcessError(
-                    "Un-instrumented with GTPin framework run failed."
-                )
-
-            _, sycl_runtime, gtpin_runtime = (
-                gtpin_get_opcodeprof_tool_results(stdout, stderr, True, False)
-            )
-
-            out[
-                "Un-instrumented with GTPin-framework, SYCL Kernel Runtime (us)"
-            ] = sycl_runtime
-            out[
-                "Un-instrumented with GTPin-framework, GTPin Kernel Runtime (us)"
-            ] = gtpin_runtime
-
-            print(out)
-
-            with open(result_path, "wb") as f:
-                pickle.dump(out, f, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(result_path, "wb") as f:
+            pickle.dump(out, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         print(f"Ran {bench} benchmarks.")
 
