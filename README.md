@@ -3,153 +3,108 @@
 This repository contains the artifact for the paper
 "GTPin: Enhancing Intel GPU Profiling With High-Level Binary Instrumentation" accepted to 2026 IEEE International Symposium 
 on Performance Analysis of Systems and Software (ISPASS '26).
+Some measurements in this work build upon the https://github.com/NUCAR-DEV/luthier-ispass2025 artifact, and parts of its content have been reused here.
 
 ## Contents
 1. A snapshot of the [Luthier project](https://github.com/matinraayai/Luthier) under the 
    [`Luthier/`](./Luthier) folder, with git revision number `6a1ae19b62ea9d4b021e4555c55a02b5bd1a885a`.
-2. A snapshot of the [HeCBench repository](https://github.com/zjin-lcf/HeCBench) used to obtain the figures in 
-   the paper under the [`HecBench`](./HeCBench) folder, with git revision 
+2. Fifteen benchmarks from the [HeCBench repository](https://github.com/zjin-lcf/HeCBench) under the [`HecBench`](./HeCBench) folder, with git revision 
    number `b59cdcc3755c3a0cd39b4b9925ac5aa76b1d1171`.
-4. A snapshot of [NVBit](https://github.com/NVlabs/NVBit) version 1.7.4, under the [`nvbit_release`](./nvbit_release)
-   folder. The instruction counter example tool has been modified to measure the host runtime of the instrumented 
+4. `ze_gemm` and `race_condition` workloads under TBD.
+5. A snapshot of [NVBit](https://github.com/NVlabs/NVBit) version 1.7.4, under the [`nvbit_release`](./nvbit_release)
+   folder. The instruction counter example and opcode histogram tools has been modified to measure the host runtime of the instrumented 
    kernels.
-5. A GTPin Kit TBD
-6. A set of Python scripts used to run the experiments and obtain the results shown in the figures in text format.
+6. A GTPin Kit version 4.7 TBD.
+7. A set of Python scripts used to run the experiments and obtain the results shown in the figures in text format.
 
 ## Requirements
+The experiments on three following systems:
+1. Intel GPU for GTPin experiments and performance measurements: TBD
+2. AMD GPU for Luthier performance measurements:
+AMD EPYC™ 7313 16-Core Processor with an AMD
+Instinct™ MI250 GPU
+3. NVIDIA GPU for NVBit performance measurements:
+Intel® Xeon™ Platinum 8480+ with NVIDIA A100
+80GB PCIe
+
+### Intel system:
+
 TBD
-1. An NVIDIA V100 and an AMD MI100 GPU attached to the same system.
-2. NVIDIA Kernel Driver (v560.35.03 was used).
-3. NVIDIA Container toolkit (v1.16.2 was used).
-4. AMDGPU Kernel Driver (v.6.2.3 was used).
-5. A Linux OS (Ubuntu 22.04.5 LTS was used).
 
-The container itself contains the following pre-requisite software:
-TBD not container
-1. NVIDIA CUDA toolkit version 12.8.0.
-2. GNU C/C++ Compiler version 12.
-3. Python 3 with packages `cxxheaderparser`, `pcpp`, and `yacs`.
-4. CMake version 3.28.3.
-5. [Bleeding-edge ROCm compilation software stack](https://github.com/ROCm/llvm-project) obtained by from the 
+### AMD system:
+
+**Hardware requirements:** 
+1. GPU: AMD Instinct MI250
+2. CPU: AMD EPYC 7313 16-Core
+
+**Sofrware requirements:**
+1. A Linux OS (Ubuntu 22.04.5 LTS was used).
+2. AMDGPU Kernel Driver (v.6.8.3 was used).
+3. [Bleeding-edge ROCm compilation software stack](https://github.com/ROCm/llvm-project) obtained by from the 
    `amd-staging` branch of the LLVM ROCm fork.
-6. [Intel SYCL compiler](https://github.com/intel/llvm).
+4. GNU C/C++ Compiler version 12.
+5. Python 3 with packages `cxxheaderparser`, `pcpp`, and `yacs`.
+6. CMake version 3.28.3.
 
+### NVIDIA system:
+
+**Hardware requirements:**
+1. GPU: NVIDIA A100 80GB PCIe
+2. CPU: Intel Xeon Platinum 8480+ (Sapphire Rapids)
+
+**Sofrware requirements:**
+1. A Linux OS (Ubuntu 22.04.5 LTS was used) 
+2. NVIDIA Kernel Driver (v580.126.09 was used).
+3. NVIDIA CUDA toolkit version 12.8.0.
+5. Intel LLVM DPC++ compiler v20.0 with NVIDIA CUDA backend support
+4. GNU C/C++ Compiler version 12.
+5. Python 3 with packages `cxxheaderparser`, `pcpp`, and `yacs`.
+6. CMake version 3.28.3.
 
 ## How To Run
 
+## How To Run
 
-# ISPASS 2026 GTPin Artifact – Environment & Execution Guide
-
-This document describes how to set up and run the ISPASS 2026 GTPin artifact on Intel ORTCE infrastructure for both **AMD MI250** and **NVIDIA A100** platforms.
-
----
-
-## Prerequisites
-
-### Intel ORTCE Environment
-- **Required permissions**:
-  - `sudo`
-  - `debug`
-- **Target machines**:
-  - `ortce-amdgpu-mi250`
-  - `ortce-a100-80G1`
-
----
-
-## Connecting to ORTCE
-
-### Login to ORTCE Lab
-```bash
-ssh rburstei@ortce-skl.jf.intel.com
-```
-
----
-
-## AMD MI250 Setup
-
-### Connect to AMD MI250 Node
-```bash
-srun -w ortce-amdgpu-mi250 --pty bash
-```
-
-### Long Runs (Debug Queue)
-For long executions, use the debug queue (requires re-approval):
-```bash
-srun -p debug --qos=debug -w ortce-amdgpu-mi250 --time=2000 --pty /bin/bash
-```
-
----
-
-### Repository Setup
-Clone the repository or move to your existing environment:
-```bash
-cd /nfs/pdx/home/rburstei/gtpin/gtpin-ispass2026/
-```
-
----
-
-### Run Docker Container (AMD)
-
-> **Note:** `sudo` permissions are required.
-
-```bash
-sudo docker run --rm -it   -v $PWD:/work/   --device=/dev/kfd   --device=/dev/dri/   --privileged   --security-opt seccomp=unconfined   --shm-size=16G   --cap-add=SYS_PTRACE   --ipc=host   intel-gtpin-ispass-2026-artifact   /bin/bash
-```
-
-Alternative container image:
-```bash
-sudo docker run --rm -it   -v $PWD:/work/   --device=/dev/kfd   --device=/dev/dri/   --privileged   --security-opt seccomp=unconfined   --shm-size=16G   --cap-add=SYS_PTRACE   --ipc=host   containers.rc.northeastern.edu/luthier/ispass-2025-artifact   /bin/bash
-```
-
----
-
-### Build SYCL Applications (AMD Only)
-If required:
-```bash
-python3 scripts/compile_benchmarks.py --action clean
-```
-
----
-
-### Run Experiments (AMD)
-
-Default run:
-```bash
-python3 scripts/amd_opcode_histogram.py --dump_stdout_stderr
-```
-
-Reduced specification set:
-```bash
-python3 scripts/amd_opcode_histogram.py --dump_stdout_stderr --specs_yaml scripts/specs_reduced.yaml
-```
-
----
-
-## NVIDIA A100 Setup
-
-### Connect to NVIDIA A100 Node
-```bash
-srun -w ortce-a100-80G1 --pty bash
-```
-
-### Long Runs (Debug Queue)
-```bash
-srun -p debug --qos=debug -w ortce-a100-80G1 --time=2000 --pty /bin/bash
-```
-
----
-
-### Run Docker Container (NVIDIA)
-
-```bash
-docker run --gpus all -it   -v $(pwd):/work   containers.rc.northeastern.edu/luthier/ispass-2025-artifact:latest
-```
-
----
-
-## Notes
-- Ensure you are running on the correct node (AMD vs. NVIDIA) before launching Docker.
-- Debug queue usage may require prior approval.
-- Paths and permissions assume Intel ORTCE infrastructure.
-
----
+1. Clone this repository, and change to the repository directory:
+   ```bash
+   git clone --single-branch --depth 1 https://github.com/intel/GTPin-ispass2026
+   cd GTPin-ispass2026
+   ```
+2. Install the software dependencies based on the system you measure.
+3. Build the HeC benchmarks, pass the system you are mesure:
+   ```bash
+   TBD "system"
+   python3 scripts/compile_benchmarks.py --action build --system intel
+   OR
+   python3 scripts/compile_benchmarks.py --action build --system amd
+   OR
+   python3 scripts/compile_benchmarks.py --action build --system nvidia
+   ```
+5. To run the experiments, run the following scripts:
+   ```bash
+   # For figure 3
+   TBD
+   # For figure 4
+   TBD
+   # For figure 6
+   python3 scripts/gtpin_opcodeprof.py --dump_stdout_stderr
+   OR
+   python3 scripts/amd_opcode_histogram.py --dump_stdout_stderr
+   OR
+   python3 scripts/nvidia_opcode_hist.py --dump_stdout_stderr
+   ```
+   Note that the `--dump_stdout_stderr` dumps the output of each experiments to the standard output/error, which 
+   can be quite large; Therefore, it is recommended to clip the terminal emulator output when running the experiments.
+6. To create a .csv file with the results, run the following scripts:
+   ```bash
+   # For figure 3
+   TBD
+   # For figure 4
+   TBD
+   # For figure 6
+   python3 scripts/gtpin_print_opcodeprof.py
+   OR
+   python3 scripts/amd_print_opcode_histogram.py
+   OR
+   python3 scripts/nvidia_print_opcode_hist.py
+   ```
