@@ -21,7 +21,7 @@ def parse_and_validate_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--luthier_opcode_histogram_tool_path", type=str,
-        default="/work/Luthier/build/examples/OpcodeHistogram/libLuthierOpcodeHistogram.so",
+        default="Luthier/build/examples/OpcodeHistogram/libLuthierOpcodeHistogram.so",
         help="location of the luthier instruction count tool",
     )
     parser.add_argument(
@@ -106,23 +106,23 @@ def main():
         run_flags = eval(cfgs["run_command"])  # assumed trusted YAML
 
         benchmark_folder = os.path.join(
-            args.hecbench_dir, "src", f"{bench}-{programming_model}"
+            args.hecbench_dir, "src", f"{bench}-sycl"
         )
 
         result_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
         if os.path.exists(result_path) and not args.overwrite_results:
-            print(f"Skipping {bench}-{programming_model} (results already exist).")
+            print(f"Skipping {bench}-sycl (results already exist).")
             continue
 
         # ------------------------------------------------------------------
         # Instrumented run
         # ------------------------------------------------------------------
         env_vars = os.environ.copy()
-        env_vars["LD_PRELOAD"] = args.luthier_opcode_histogram_tool_path
+        env_vars["LD_PRELOAD"] = os.path.abspath(args.luthier_opcode_histogram_tool_path)
         env_vars["HIP_ENABLE_DEFERRED_LOADING"] = "0"
 
         print(
-            f"Running instrumented {bench}-{programming_model}: {' '.join(run_flags)}"
+            f"Running instrumented {bench}-sycl: {' '.join(run_flags)}"
         )
 
         rc, stdout, stderr = capture_subprocess_output(
@@ -148,7 +148,7 @@ def main():
 
         print(
             f"Running un-instrumented with Luthier framework "
-            f"{bench}-{programming_model}"
+            f"{bench}-sycl"
         )
 
         rc, stdout, stderr = capture_subprocess_output(

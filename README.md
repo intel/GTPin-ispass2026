@@ -96,7 +96,8 @@ TBD
    OR
    python3 scripts/compile_benchmarks.py --action build --system nvidia
    ```
-5. To run the experiments, run the following scripts:
+6. According to the system, build the instrumentation tools TBD
+7. To run the experiments, run the following scripts:
    ```bash
    # For figure 3
    TBD
@@ -111,7 +112,7 @@ TBD
    ```
    Note that the `--dump_stdout_stderr` dumps the output of each experiments to the standard output/error, which 
    can be quite large; Therefore, it is recommended to clip the terminal emulator output when running the experiments.
-6. To create a .csv file with the results, run the following scripts:
+8. To create a .csv file with the results, run the following scripts:
    ```bash
    # For figure 3
    TBD
