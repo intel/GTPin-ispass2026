@@ -97,21 +97,20 @@ def luthier_get_instr_count_tool_results(
 def main():
     args = parse_and_validate_args()
     benchmark_cfg = read_yaml_cfg(args.specs_yaml)
-    programming_model = "sycl-amd"
+    gpu_system = "amd"
 
     for bench in benchmark_cfg["Opcode"]["benchmarks"]:
         out = {}
 
-        cfgs = benchmark_cfg["HeCBench"][bench]["programming_models"][programming_model]
-        run_flags = eval(cfgs["run_command"])  # assumed trusted YAML
+        run_flags = eval(benchmark_cfg["HeCBench"][bench]["run_command"])  # assumed trusted YAML
 
         benchmark_folder = os.path.join(
-            args.hecbench_dir, "src", f"{bench}-{programming_model}"
+            args.hecbench_dir, "src", f"{bench}-sycl"
         )
 
         result_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
         if os.path.exists(result_path) and not args.overwrite_results:
-            print(f"Skipping {bench}-{programming_model} (results already exist).")
+            print(f"Skipping {bench}-{gpu_system} (results already exist).")
             continue
 
         # ------------------------------------------------------------------
@@ -122,7 +121,7 @@ def main():
         env_vars["HIP_ENABLE_DEFERRED_LOADING"] = "0"
 
         print(
-            f"Running instrumented {bench}-{programming_model}: {' '.join(run_flags)}"
+            f"Running instrumented {bench}-{gpu_system}: {' '.join(run_flags)}"
         )
 
         rc, stdout, stderr = capture_subprocess_output(
@@ -148,7 +147,7 @@ def main():
 
         print(
             f"Running un-instrumented with Luthier framework "
-            f"{bench}-{programming_model}"
+            f"{bench}-{gpu_system}"
         )
 
         rc, stdout, stderr = capture_subprocess_output(
