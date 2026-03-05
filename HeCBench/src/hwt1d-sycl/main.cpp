@@ -1,5 +1,5 @@
 /**********************************************************************
-  Copyright ï¿½2013 Advanced Micro Devices, Inc. All rights reserved.
+  Copyright ©2013 Advanced Micro Devices, Inc. All rights reserved.
 
   Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
@@ -67,10 +67,8 @@ int main(int argc, char * argv[])
 
   memset(hOutData, 0, signalLength * sizeof(float));
 
-double kernel_time_ms = 0;
 #ifdef USE_GPU
-  //sycl::queue q(sycl::gpu_selector_v,                     sycl::property::queue::in_order());
-  sycl::queue q{sycl::gpu_selector_v, sycl::property_list{sycl::property::queue::in_order{}, sycl::property::queue::enable_profiling{}}};
+  sycl::queue q(sycl::gpu_selector_v, sycl::property::queue::in_order());
 #else
   sycl::queue q(sycl::cpu_selector_v, sycl::property::queue::in_order());
 #endif
@@ -88,14 +86,13 @@ double kernel_time_ms = 0;
 
   for(int i = 0; i < iterations; i++)
   {
-    kernel_time_ms += runKernel(q, inData, hOutData, dOutData, dPartialOutData,
+    runKernel(q, inData, hOutData, dOutData, dPartialOutData,
               signalLength, inDataBuf, partialOutDataBuf, outDataBuf);
   }
 
   auto end = std::chrono::steady_clock::now();
   auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   std::cout << "Average device offload time " << (time * 1e-9f) / iterations << " (s)\n";
-  printf("SYCL_MEASUREMENT: Total kernel execution time on GPU: %f (ms)\n", kernel_time_ms);
 
   // Verify
   calApproxFinalOnHost(inData, hOutData, signalLength);

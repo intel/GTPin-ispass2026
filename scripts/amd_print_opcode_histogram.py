@@ -37,36 +37,36 @@ def main():
     benchmark_cfg = read_yaml_cfg(args.specs_yaml)
 
     benchmarks = benchmark_cfg["InstrCount"]["benchmarks"]
-    programming_models = benchmark_cfg["InstrCount"]["programming_models"]
+    programming_model = "sycl-amd"
 
     # Collect rows for CSV
     rows = []
 
     for bench in benchmarks:
-        for programming_model in programming_models:
-            benchmark_folder = os.path.join(
-                args.hecbench_dir, "src", f"{bench}-{programming_model}"
+
+        benchmark_folder = os.path.join(
+            args.hecbench_dir, "src", f"{bench}-{programming_model}"
+        )
+        pkl_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
+
+        if not os.path.isfile(pkl_path):
+            raise FileNotFoundError(
+                f"Missing results pickle: {pkl_path}"
             )
-            pkl_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
 
-            if not os.path.isfile(pkl_path):
-                raise FileNotFoundError(
-                    f"Missing results pickle: {pkl_path}"
-                )
+        with open(pkl_path, "rb") as f:
+            data_point = pickle.load(f)
 
-            with open(pkl_path, "rb") as f:
-                data_point = pickle.load(f)
+        row = {
+            "benchmark": bench,
+            "programming_model": programming_model,
+        }
 
-            row = {
-                "benchmark": bench,
-                "programming_model": programming_model,
-            }
+        # Extract requested keys (leave blank if missing)
+        for k in CSV_KEYS:
+            row[k] = data_point.get(k, "")
 
-            # Extract requested keys (leave blank if missing)
-            for k in CSV_KEYS:
-                row[k] = data_point.get(k, "")
-
-            rows.append(row)
+        rows.append(row)
 
     # Write CSV
     fieldnames = ["benchmark", "programming_model"] + CSV_KEYS

@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright ï¿½2013 Advanced Micro Devices, Inc. All rights reserved.
+Copyright ©2013 Advanced Micro Devices, Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
@@ -32,7 +32,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 int getLevels(unsigned int length, unsigned int* levels);
 void calApproxFinalOnHost(float *inData, float *hOutData, unsigned int signalLength);
 
-double runKernel(
+int runKernel(
     sycl::queue &q,
     float *inData, 
     float *dOutData, 
