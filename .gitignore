@@ -3,7 +3,7 @@
 .venv/*
 
 GTPin/Profilers/*
-GTPIN_PROFILE*
+GTPIN_*
 
 *.tar.*
 *.pkl

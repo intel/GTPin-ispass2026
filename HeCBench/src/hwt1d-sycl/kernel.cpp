@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright ï¿½2013 Advanced Micro Devices, Inc. All rights reserved.
+Copyright ©2013 Advanced Micro Devices, Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
@@ -107,7 +107,7 @@ void dwtHaar1D(sycl::nd_item<1> &item,
         AverageSignal[groupId] = sharedArray[0];
 }
 
-double runKernel(
+int runKernel(
     sycl::queue &q,
     float *inData, 
     float *dOutData, 
@@ -119,7 +119,7 @@ double runKernel(
     float *outDataBuf)
 {
   unsigned int levels = 0;
-  double kernel_time_ms = 0;
+
   int result = getLevels(signalLength, &levels);
   if (result == 1) {
     std::cerr << "getLevels() failed\n";
@@ -165,7 +165,7 @@ double runKernel(
 
     sycl::range<1> gws (curSignalLength >> 1);
     sycl::range<1> lws (groupSize);
-    auto event = q.submit([&] (sycl::handler &cgh) {
+    q.submit([&] (sycl::handler &cgh) {
       sycl::local_accessor<float, 1> lmem (sycl::range<1>(groupSize*2), cgh);
       cgh.parallel_for<class dwt>(
         sycl::nd_range<1>(gws, lws), [=] (sycl::nd_item<1> item) {
@@ -180,12 +180,6 @@ double runKernel(
                   maxLevelsOnDevice);
       });
     });
-
-    event.wait();
-    // Get GPU execution time
-    auto start_time = event.get_profiling_info<sycl::info::event_profiling::command_start>();
-    auto end_time = event.get_profiling_info<sycl::info::event_profiling::command_end>();
-    kernel_time_ms += (end_time - start_time) / 1e6;
 
     q.memcpy(dOutData, outDataBuf, signalLengthByte);
 
@@ -212,5 +206,5 @@ double runKernel(
 
   memcpy(inData, temp, signalLength * sizeof(float));
   free(temp);
-  return kernel_time_ms;
+  return 0;
 }

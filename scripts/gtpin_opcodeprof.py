@@ -115,9 +115,12 @@ def main():
         )
 
         result_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
-        if os.path.exists(result_path) and not args.overwrite_results:
-            print(f"Skipping {bench}-sycl (results already exist).")
-            continue
+        if os.path.exists(result_path):
+            if not args.overwrite_results:
+                print(f"Skipping {bench}-sycl (results already exist).")
+                continue
+            else:
+                os.remove(result_path)
 
         env_vars = os.environ.copy()
 
@@ -127,7 +130,7 @@ def main():
         # Un-instrumented with GTPin framework
         # ------------------------------------------------------------------
         # Run with GTPin framework but execute original module (no instrumentation)
-        gtpin_uninstrumented_run_flags = [gtpin_exe_path, "-t", tool_path, "--run_original_module", "--"] + list(run_flags)
+        gtpin_uninstrumented_run_flags = [gtpin_exe_path, "-t", tool_path, "--run_original_module", "--profile_dir", "GTPIN_NATIVE", "--"] + list(run_flags)
 
         print(
             f"Running un-instrumented {bench}-sycl: {' '.join(gtpin_uninstrumented_run_flags)}"
@@ -150,7 +153,7 @@ def main():
         # Instrumented run - LLI Opcodeprof
         # ------------------------------------------------------------------
         # Run with GTPin framework with instrumentation per instruction
-        gtpin_instrumented_run_flags = [gtpin_exe_path, "-t", tool_path, instrument_per_ins_knob, "--"] + list(run_flags)
+        gtpin_instrumented_run_flags = [gtpin_exe_path, "-t", tool_path, instrument_per_ins_knob, "--profile_dir", "GTPIN_LLI_OPCODEPROF", "--"] + list(run_flags)
         print(
             f"Running instrumented {bench}-sycl: {' '.join(gtpin_instrumented_run_flags)}"
         )
@@ -176,7 +179,7 @@ def main():
         # ------------------------------------------------------------------
         # Run with GTPin framework with instrumentation per instruction
         tool_path = os.path.join(tools_path, "hlif_opcodeprof.so")
-        gtpin_instrumented_run_flags = [gtpin_exe_path, "-t", tool_path, instrument_per_ins_knob, "--"] + list(run_flags)
+        gtpin_instrumented_run_flags = [gtpin_exe_path, "-t", tool_path, instrument_per_ins_knob, "--profile_dir", "GTPIN_HLI_OPCODEPROF", "--"] + list(run_flags)
         print(
             f"Running instrumented {bench}-sycl: {' '.join(gtpin_instrumented_run_flags)}"
         )

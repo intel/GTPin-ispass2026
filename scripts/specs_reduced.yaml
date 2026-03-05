@@ -11,11 +11,11 @@ HeCBench:
   maxpool3d:
     programming_models:
       sycl-amd:
-        run_command: ("./main", "2048", "2048", "96", "10")
+        run_command: ("./main", "1024", "1024", "96", "10")
         compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
           "HIP=yes", "-e", "HIP_ARCH=gfx90a")
       sycl-intel:
-        run_command: ("./main", "2048", "2048", "96", "10")
+        run_command: ("./main", "1024", "1024", "96", "10")
         compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e", "INTEL=yes")
   convolutionSeparable:
     programming_models:

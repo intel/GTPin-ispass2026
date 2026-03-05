@@ -13,17 +13,23 @@ echo "GTPin Directory: $GTPIN_DIR"
 echo "HeCBench Directory: $HECBENCH_DIR"
 echo "Scripts Directory: $SCRIPTS_DIR"
 
-cd "$BASE_DIR"
+# Remove all previous results
+cd "$HECBENCH_DIR"
+find . -type d -name 'GTPIN_*' -exec rm -rf {} +
+find . -type f -name '*.pkl' -exec rm -f {} +
 
 # Compile Applications
+cd "$BASE_DIR"
 python3 "$SCRIPTS_DIR/compile_benchmarks.py" --action build --programming_model sycl-intel --hecbench_dir "$HECBENCH_DIR"
 
 # Compile GTPin tools
 cd "$GTPIN_DIR"
 rm -rf ./Profilers
+# If GTPin kit archive doesn't exist, download it.
 if ! ls ./*.tar.xz 1> /dev/null 2>&1; then
     wget https://downloadmirror.intel.com/913776/external-release-gtpin-4.7-linux.tar.xz
 fi
+# Extract GTPin kit archive and build tools
 tar -xf ./*.tar.xz
 mkdir Profilers/Examples/build
 cd Profilers/Examples/build
