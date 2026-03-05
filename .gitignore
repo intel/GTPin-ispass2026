@@ -9,3 +9,11 @@ GTPIN_*
 *.pkl
 *.pyc
 *.csv
+
+# NVBit release is downloaded at setup time; only README.md is tracked
+nvbit_release/*
+!nvbit_release/README.md
+
+# HeCBench is cloned at setup time; only README.md is tracked
+HeCBench/*
+!HeCBench/README.md
