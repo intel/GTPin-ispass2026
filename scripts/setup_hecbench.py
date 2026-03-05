@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-Clone the HeCBench repository at a specific commit and populate the HeCBench/
-directory with only the benchmark sources needed for the ISPASS 2026 artifact.
+Download the HeCBench repository at a specific commit and populate the
+HeCBench/ directory with only the benchmark sources needed for the ISPASS
+2026 artifact.
 
-Uses ``git`` sparse-checkout so that only the required ``src/`` subdirectories
-(and shared data) are materialized on disk, keeping the checkout small.
+Downloads a tarball from GitHub's archive API and selectively extracts
+only the required ``src/`` subdirectories (and shared data), keeping the
+checkout small.  No ``git`` binary is required.
 
 Usage (from the project root):
     python3 scripts/setup_hecbench.py
@@ -12,14 +14,21 @@ Usage (from the project root):
 """
 
 import argparse
+import io
 import shutil
-import subprocess
 import sys
+import tarfile
+import urllib.request
 from pathlib import Path
 
-HECBENCH_REPO = "https://github.com/zjin-lcf/HeCBench.git"
+HECBENCH_REPO_OWNER = "zjin-lcf"
+HECBENCH_REPO_NAME = "HeCBench"
 HECBENCH_COMMIT = "b59cdcc3755c3a0cd39b4b9925ac5aa76b1d1171"
 HECBENCH_DIR_NAME = "HeCBench"
+TARBALL_URL = (
+    f"https://github.com/{HECBENCH_REPO_OWNER}/{HECBENCH_REPO_NAME}"
+    f"/archive/{HECBENCH_COMMIT}.tar.gz"
+)
 
 # Only the benchmark directories actually used in this artifact.
 # These must match the names referenced in scripts/specs.yaml.
@@ -49,39 +58,53 @@ EXTRA_PATHS = [
     "src/data",
 ]
 
+# Top-level files (relative to the repo root) that we also need.
+TOP_LEVEL_FILES = [
+    "LICENSE",
+]
+
 
 def project_root() -> Path:
     """Return the project root (parent of scripts/)."""
     return Path(__file__).resolve().parent.parent
 
 
-def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
-    """Run a command, printing it first, and abort on failure."""
-    print(f"  $ {' '.join(cmd)}")
-    result = subprocess.run(cmd, **kwargs)
-    if result.returncode != 0:
-        print(f"ERROR: command failed with exit code {result.returncode}", file=sys.stderr)
-        sys.exit(result.returncode)
-    return result
+def _wanted_prefixes() -> list[str]:
+    """Build the list of path prefixes (inside the tarball) we want to keep.
 
-
-def sparse_checkout_paths() -> list[str]:
-    """Build the list of sparse-checkout include paths."""
-    paths = []
+    GitHub tarballs contain a single top-level directory named
+    ``<repo>-<commit>/``.  The prefixes returned here already include that
+    leading component so they can be matched directly against tarball member
+    names.
+    """
+    root_in_tar = f"{HECBENCH_REPO_NAME}-{HECBENCH_COMMIT}"
+    prefixes = []
     for bench in BENCHMARKS:
         for suffix in SUFFIXES:
-            paths.append(f"src/{bench}-{suffix}")
-    paths.extend(EXTRA_PATHS)
-    # Also include top-level files (LICENSE, README, etc.)
-    paths.append("LICENSE")
-    paths.append("README.md")
-    return paths
+            prefixes.append(f"{root_in_tar}/src/{bench}-{suffix}/")
+    for extra in EXTRA_PATHS:
+        prefixes.append(f"{root_in_tar}/{extra}/")
+    return prefixes
+
+
+def _wanted_files() -> list[str]:
+    """Top-level files we want, with the tarball root prefix."""
+    root_in_tar = f"{HECBENCH_REPO_NAME}-{HECBENCH_COMMIT}"
+    return [f"{root_in_tar}/{f}" for f in TOP_LEVEL_FILES]
+
+
+def _member_wanted(name: str, prefixes: list[str], files: list[str]) -> bool:
+    """Return True if *name* is under one of the wanted prefixes or is an
+    exact match for one of the wanted files."""
+    for p in prefixes:
+        if name.startswith(p):
+            return True
+    return name in files
 
 
 def setup_hecbench(hecbench_dir: Path, force: bool = False) -> None:
     # --- Guard -----------------------------------------------------------
     if hecbench_dir.exists():
-        # Check if it looks like a populated checkout
         has_src = (hecbench_dir / "src").is_dir()
         has_license = (hecbench_dir / "LICENSE").is_file()
         if has_src and has_license:
@@ -91,45 +114,55 @@ def setup_hecbench(hecbench_dir: Path, force: bool = False) -> None:
                     "  Use --force to re-clone."
                 )
                 return
-            print(f"  Removing existing {hecbench_dir} (keeping README.md) ...")
-            readme = hecbench_dir / "README.md"
-            readme_backup = None
-            if readme.exists():
-                readme_backup = hecbench_dir.parent / ".hecbench_readme_backup"
-                shutil.copy2(readme, readme_backup)
+            print("  Cleaning existing HeCBench checkout ...")
+            for child in hecbench_dir.iterdir():
+                if child.name == "README.md":
+                    continue
+                if child.is_dir():
+                    shutil.rmtree(child)
+                else:
+                    child.unlink()
 
-            shutil.rmtree(hecbench_dir)
+    hecbench_dir.mkdir(parents=True, exist_ok=True)
 
-            if readme_backup and readme_backup.exists():
-                hecbench_dir.mkdir(parents=True, exist_ok=True)
-                shutil.move(str(readme_backup), str(readme))
+    # --- Download tarball ------------------------------------------------
+    print(f"[1/2] Downloading tarball for commit {HECBENCH_COMMIT[:12]} ...")
+    print(f"  URL: {TARBALL_URL}")
+    try:
+        response = urllib.request.urlopen(TARBALL_URL)
+        tarball_bytes = response.read()
+    except Exception as exc:
+        print(f"ERROR: failed to download tarball: {exc}", file=sys.stderr)
+        sys.exit(1)
+    print(f"  Downloaded {len(tarball_bytes) / 1_048_576:.1f} MiB")
 
-    # --- Clone with sparse checkout -------------------------------------
-    print("[1/3] Cloning HeCBench (sparse) ...")
-    _run([
-        "git", "clone",
-        "--no-checkout",
-        "--filter=blob:none",
-        HECBENCH_REPO,
-        str(hecbench_dir),
-    ])
+    # --- Extract only the needed paths -----------------------------------
+    print("[2/2] Extracting selected benchmarks ...")
+    prefixes = _wanted_prefixes()
+    files = _wanted_files()
+    root_in_tar = f"{HECBENCH_REPO_NAME}-{HECBENCH_COMMIT}"
+    strip = len(root_in_tar) + 1  # +1 for the trailing '/'
 
-    # --- Configure sparse checkout --------------------------------------
-    print("[2/3] Configuring sparse checkout ...")
-    _run(["git", "-C", str(hecbench_dir), "sparse-checkout", "init", "--cone"])
-    paths = sparse_checkout_paths()
-    _run(["git", "-C", str(hecbench_dir), "sparse-checkout", "set"] + paths)
+    extracted = 0
+    with tarfile.open(fileobj=io.BytesIO(tarball_bytes), mode="r:gz") as tar:
+        for member in tar.getmembers():
+            if not _member_wanted(member.name, prefixes, files):
+                continue
+            # Strip the top-level directory from the path
+            rel = member.name[strip:]
+            if not rel:
+                continue
+            dest = hecbench_dir / rel
+            if member.isdir():
+                dest.mkdir(parents=True, exist_ok=True)
+            else:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                with tar.extractfile(member) as src_f:
+                    if src_f is not None:
+                        dest.write_bytes(src_f.read())
+                        extracted += 1
 
-    # --- Checkout the exact commit --------------------------------------
-    print(f"[3/3] Checking out commit {HECBENCH_COMMIT[:12]} ...")
-    _run(["git", "-C", str(hecbench_dir), "checkout", HECBENCH_COMMIT])
-
-    # Remove the .git directory to avoid shipping nested repos
-    git_dir = hecbench_dir / ".git"
-    if git_dir.exists():
-        shutil.rmtree(git_dir)
-        print("  Removed .git directory from HeCBench/")
-
+    print(f"  Extracted {extracted} files into {hecbench_dir}")
     print(f"\nDone. HeCBench benchmarks are ready at: {hecbench_dir}")
 
 
