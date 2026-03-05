@@ -3,10 +3,10 @@
 # Setup Environment
 source /opt/intel/oneapi/setvars.sh
 
-GTPIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE_DIR="$(dirname "$GTPIN_DIR")"
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(dirname "$SCRIPTS_DIR")"
 HECBENCH_DIR="$BASE_DIR/HeCBench"
-SCRIPTS_DIR="$BASE_DIR/scripts"
+GTPIN_DIR="$BASE_DIR/GTPin"
 
 echo "Base Directory: $BASE_DIR"
 echo "GTPin Directory: $GTPIN_DIR"

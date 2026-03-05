@@ -11,7 +11,7 @@ CACHE_SIZE_KB = ['64', '16', '4', '1']
 CACHELINE_SIZE_BYTE = ['64', '32', '16', '8', '4', '2', '1']
 
 def capture_subprocess_output(cmd, shell=False, cwd=None):
-    result = subprocess.run(cmd, shell=shell, cwd=cwd, 
+    result = subprocess.run(cmd, shell=shell, cwd=cwd,
                           capture_output=True, text=True)
     return result.returncode, result.stdout, result.stderr
 
@@ -21,12 +21,12 @@ def parse_and_validate_args() -> argparse.Namespace:
         "--kit",
         type=str,
         default=".",
-        help="Location of the GTPin kit",
+        help="Full path of the GTPin kit",
     )
     parser.add_argument(
-        "--ze_gemm_folder", type=str,
+        "--app", type=str,
         default=".",
-        help="location of the ze_gemm application",
+        help="Full path of the compiled ze_gemm application",
     )
 
     return parser.parse_args()
@@ -75,7 +75,7 @@ def get_hits_misses_count_tool_results(
 def main():
     args           = parse_and_validate_args()
     gtpin          = os.path.join(args.kit, "Profilers", "Bin", "gtpin")
-    ze_gemm_folder = os.path.join(args.ze_gemm_folder)
+    ze_gemm_folder = os.path.join(args.app)
     result_path    = os.path.join(ze_gemm_folder, RESULT_PKLE_FILE_NAME)
 
     pickl_file = open(result_path, "wb")

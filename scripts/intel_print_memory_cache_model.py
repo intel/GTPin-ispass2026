@@ -3,27 +3,32 @@ import argparse
 import os
 import pickle
 import csv
-import pandas as pd
 import sys
 
 def parse_and_validate_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("Memory cache model script")
     parser.add_argument("--app", type=str,
                         default=".",
-                        help="location of the race_condition application")
+                        help="Full path of the compiled ze_gemm application")
     parser.add_argument("--out_csv", type=str,
-                        default="detect-memory-race-model-results.csv",
+                        default="memory-cache-model-results.csv",
                         help="output CSV file path")
 
     args = parser.parse_args()
     return args
 
 
-RESULT_PKLE_FILE_NAME = "detect-memory-race-model-results.pkl"
+RESULT_PKLE_FILE_NAME = "memory-cache-model-results.pkl"
 
 
 CSV_KEYS = [
-    "Number of detected races",
+    "Cache size (in KB)",
+    "Cacheline size (in Byte)",
+    "Number of hits",
+    "Number of misses",
+    "Number of cacheline acceses",
+    "Hits distribution(%)",
+    "Misses distribution(%)",
     "cmd",
 ]
 
@@ -32,8 +37,8 @@ def main():
 
     # Collect rows for CSV
 
-    app_folder = args.app
-    pkl_path   = os.path.join(app_folder, RESULT_PKLE_FILE_NAME)
+    ze_gemm_folder = args.app
+    pkl_path = os.path.join(ze_gemm_folder, RESULT_PKLE_FILE_NAME)
 
     if not os.path.isfile(pkl_path):
         raise FileNotFoundError(f"Missing results pickle: {pkl_path}")
@@ -59,14 +64,13 @@ def main():
         rows.append(row)
 
     # Write CSV
-    csv_path = os.path.join(app_folder, args.out_csv)
     fieldnames = CSV_KEYS
     with open(args.out_csv, "w", newline="") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
 
-    #print(f"Wrote CSV with {len(rows)} rows to: {args.out_csv}")
+    print(f"Wrote CSV with {len(rows)} rows to: {args.out_csv}")
 
 
 if __name__ == "__main__":

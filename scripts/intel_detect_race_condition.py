@@ -9,7 +9,7 @@ RESULT_PKLE_FILE_NAME = "detect-memory-race-model-results.pkl"
 
 
 def capture_subprocess_output(cmd, shell=False, cwd=None):
-    result = subprocess.run(cmd, shell=shell, cwd=cwd, 
+    result = subprocess.run(cmd, shell=shell, cwd=cwd,
                           capture_output=True, text=True)
     return result.returncode, result.stdout, result.stderr
 
@@ -19,12 +19,12 @@ def parse_and_validate_args() -> argparse.Namespace:
         "--kit",
         type=str,
         default=".",
-        help="Location of the GTPin kit",
+        help="Full path of the GTPin kit",
     )
     parser.add_argument(
         "--app", type=str,
         default=".",
-        help="location of the race_condition application",
+        help="Full path of the compiled race_condition application",
     )
 
     return parser.parse_args()
