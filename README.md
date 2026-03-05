@@ -16,7 +16,7 @@ Some measurements in this work build upon the https://github.com/NUCAR-DEV/luthi
    [`nvbit_release/`](./nvbit_release) folder (not shipped in the repo — see [Setup](#setup) below).
    The opcode histogram tool has been modified to measure the host runtime of the instrumented 
    kernels; the patched source is stored in [`nvbit_patches/`](./nvbit_patches).
-6. A GTPin Kit version 4.7 TBD.
+6. A GTPin Kit version 4.7 TBD. patched sources TBD
 7. A set of Python scripts under [`scripts/`](./scripts) used to set up external dependencies,
    run the experiments, and obtain the results shown in the figures in text format.
 
@@ -74,12 +74,11 @@ TBD
 
 ### Setup
 
-2. **Set up HeCBench** (requires `git`). This sparse-clones the 15 benchmarks used in this artifact:
+2. **Set up HeCBench** This sparse-clones the 15 benchmarks used in this artifact:
    ```bash
    python3 scripts/setup_hecbench.py
    ```
-3. **Set up NVBit** (NVIDIA system only; requires `wget` or Python 3). This downloads NVBit v1.7.4 and
-   applies the patched opcode histogram tool:
+3. **Set up NVBit** This downloads NVBit v1.7.4 and applies the patched opcode histogram tool:
    ```bash
    python3 scripts/setup_nvbit.py
    ```
