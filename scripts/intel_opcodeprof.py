@@ -104,11 +104,10 @@ def main():
     instrument_per_ins_knob = "--instrument_per_ins"
 
     for bench in benchmark_cfg["Opcode"]["benchmarks"]:
-        programming_model = "sycl-intel"
+
         out = {}
 
-        cfgs = benchmark_cfg["HeCBench"][bench]["programming_models"][programming_model]
-        run_flags = eval(cfgs["run_command"])  # assumed trusted YAML
+        run_flags = eval(benchmark_cfg["HeCBench"][bench]["run_command"])  # assumed trusted YAML
 
         benchmark_folder = os.path.join(
             args.hecbench_dir, "src", f"{bench}-sycl"

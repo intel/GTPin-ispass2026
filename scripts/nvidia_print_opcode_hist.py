@@ -37,14 +37,14 @@ def main():
     benchmark_cfg = read_yaml_cfg(args.specs_yaml)
 
     benchmarks = benchmark_cfg["Opcode"]["benchmarks"]
-    programming_model = "sycl-nvidia"
+    gpu_system = "nvidia"
 
     # Collect rows for CSV
     rows = []
 
     for bench in benchmarks:
         benchmark_folder = os.path.join(
-            args.hecbench_dir, "src", f"{bench}-{programming_model}"
+            args.hecbench_dir, "src", f"{bench}-sycl"
         )
         pkl_path = os.path.join(benchmark_folder, RESULT_PKLE_FILE_NAME)
 
@@ -58,7 +58,7 @@ def main():
 
         row = {
             "benchmark": bench,
-            "programming_model": programming_model,
+            "GPU": gpu_system,
         }
 
         # Extract requested keys (leave blank if missing)
@@ -68,7 +68,7 @@ def main():
         rows.append(row)
 
     # Write CSV
-    fieldnames = ["benchmark", "programming_model"] + CSV_KEYS
+    fieldnames = ["benchmark", "GPU"] + CSV_KEYS
     with open(args.out_csv, "w", newline="") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
