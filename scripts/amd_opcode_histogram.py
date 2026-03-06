@@ -16,7 +16,7 @@ def parse_and_validate_args() -> argparse.Namespace:
     parser.add_argument(
         "--hecbench_dir",
         type=str,
-        default="/work/HeCBench",
+        default="./HeCBench",
         help="location of the HeCBench repo",
     )
     parser.add_argument(

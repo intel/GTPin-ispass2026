@@ -8,8 +8,8 @@ import sys
 def parse_and_validate_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("Memory cache model script")
     parser.add_argument("--app", type=str,
-                        default=".",
-                        help="Full path of the compiled race_condition application")
+                        default="./GTPin/race_condition",
+                        help="Path of the compiled race_condition application")
     parser.add_argument("--out_csv", type=str,
                         default="detect-memory-race-model-results.csv",
                         help="output CSV file path")

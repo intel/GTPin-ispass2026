@@ -18,13 +18,13 @@ def parse_and_validate_args() -> argparse.Namespace:
     parser.add_argument(
         "--kit",
         type=str,
-        default=".",
+        default="./GTPin",
         help="Full path of the GTPin kit",
     )
     parser.add_argument(
         "--app", type=str,
-        default=".",
-        help="Full path of the compiled race_condition application",
+        default="./GTPin/race_condition",
+        help="Path of the compiled race_condition application",
     )
 
     return parser.parse_args()
@@ -65,9 +65,14 @@ def get_race_condition_count_tool_results(
 
 def main():
     args        = parse_and_validate_args()
-    gtpin       = os.path.join(args.kit, "Profilers", "Bin", "gtpin")
+    gtpin       = os.path.realpath(os.path.join(args.kit, "Profilers", "Bin", "gtpin"))
     app_folder  = os.path.join(args.app)
     result_path = os.path.join(app_folder, RESULT_PKLE_FILE_NAME)
+
+    if not os.path.isfile(gtpin):
+        raise FileNotFoundError(
+            f"Could not find GTPin profiler at {gtpin}. Please check the path and try again."
+        )
 
     pickl_file = open(result_path, "wb")
 
@@ -88,7 +93,7 @@ def main():
         # ------------------------------------------------------------------
         print("Running: {}".format(' '.join(cmd)))
 
-        rc, stdout, stderr = capture_subprocess_output(cmd=cmd, cwd=app_folder)
+        rc, stdout, stderr = capture_subprocess_output(cmd=cmd)
         if rc:
             raise ChildProcessError("Profiling run failed. rc = {}".format(rc))
 

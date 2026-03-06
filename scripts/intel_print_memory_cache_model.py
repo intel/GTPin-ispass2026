@@ -8,8 +8,8 @@ import sys
 def parse_and_validate_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("Memory cache model script")
     parser.add_argument("--app", type=str,
-                        default=".",
-                        help="Full path of the compiled ze_gemm application")
+                        default="./pti-gpu/samples/ze_gemm/build",
+                        help="Path of the compiled ze_gemm application")
     parser.add_argument("--out_csv", type=str,
                         default="memory-cache-model-results.csv",
                         help="output CSV file path")

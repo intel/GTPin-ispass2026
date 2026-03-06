@@ -9,7 +9,7 @@ import csv
 def parse_and_validate_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("Instruction count runner script")
     parser.add_argument("--hecbench_dir", type=str,
-                        default="/work/HeCBench",
+                        default="./HeCBench",
                         help="location of the HeCBench repo")
     parser.add_argument("--specs_yaml", type=str,
                         default="scripts/specs.yaml",

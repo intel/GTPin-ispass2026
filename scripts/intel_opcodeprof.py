@@ -23,7 +23,7 @@ def parse_and_validate_args() -> argparse.Namespace:
     parser.add_argument(
         "--gtpin_profiler_path",
         type=str,
-        default="./GTPin_Release/Profilers",
+        default="./GTPin/Profilers",
         help="location of the GTPin kit",
     )
     parser.add_argument(
@@ -97,11 +97,16 @@ def gtpin_get_opcodeprof_tool_results(
 
 
 def main():
-    args = parse_and_validate_args()
-    benchmark_cfg = read_yaml_cfg(args.specs_yaml)
-    gtpin_exe_path = os.path.join(args.gtpin_profiler_path, "Bin", "gtpin")
-    tools_path = os.path.join(args.gtpin_profiler_path, "Examples", "build")
+    args           = parse_and_validate_args()
+    benchmark_cfg  = read_yaml_cfg(args.specs_yaml)
+    gtpin_exe_path = os.path.realpath(os.path.join(args.gtpin_profiler_path, "Bin", "gtpin"))
+    tools_path     = os.path.realpath(os.path.join(args.gtpin_profiler_path, "Examples", "build"))
     instrument_per_ins_knob = "--instrument_per_ins"
+
+    if not os.path.isfile(gtpin_exe_path):
+        raise FileNotFoundError(
+            f"Could not find GTPin executable at {gtpin_exe_path}. Please check the path and try again."
+        )
 
     for bench in benchmark_cfg["Opcode"]["benchmarks"]:
 
