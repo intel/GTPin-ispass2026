@@ -21,7 +21,7 @@ def parse_and_validate_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--luthier_opcode_histogram_tool_path", type=str,
-        default="/work/Luthier/build/examples/OpcodeHistogram/libLuthierOpcodeHistogram.so",
+        default="Luthier/build/examples/OpcodeHistogram/libLuthierOpcodeHistogram.so",
         help="location of the luthier instruction count tool",
     )
     parser.add_argument(
@@ -117,7 +117,7 @@ def main():
         # Instrumented run
         # ------------------------------------------------------------------
         env_vars = os.environ.copy()
-        env_vars["LD_PRELOAD"] = args.luthier_opcode_histogram_tool_path
+        env_vars["LD_PRELOAD"] = os.path.abspath(args.luthier_opcode_histogram_tool_path)
         env_vars["HIP_ENABLE_DEFERRED_LOADING"] = "0"
 
         print(

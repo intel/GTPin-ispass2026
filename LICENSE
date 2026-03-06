@@ -1,0 +1,138 @@
+This repository is an artifact for the ISPASS 2026 paper
+"GTPin: Enhancing Intel GPU Profiling With High-Level Binary Instrumentation".
+
+It bundles several third-party components, each under its own license.
+The license that applies to each file is determined by the component it belongs
+to, as described below.
+
+================================================================================
+1. Original content of this repository (MIT License)
+   Applies to: GTPin/**, scripts/**, and all other files not covered by
+   a third-party license below.
+================================================================================
+
+Copyright (C) 2024-2026 Intel Corporation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+2. Luthier (Apache License 2.0)
+   Applies to: Luthier/**
+   Full license text: Luthier/LICENSE
+================================================================================
+
+Copyright 2022-2025 Northeastern University Computer Architecture Lab
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use files in the Luthier/ directory except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+================================================================================
+3. HeCBench (not shipped — cloned at setup time; BSD 3-Clause License)
+   Applies to: HeCBench/** (after running scripts/setup_hecbench.py)
+================================================================================
+
+HeCBench is NOT distributed with this repository. It is cloned from
+https://github.com/zjin-lcf/HeCBench at commit
+b59cdcc3755c3a0cd39b4b9925ac5aa76b1d1171 via scripts/setup_hecbench.py.
+
+The HeCBench project is licensed under the BSD 3-Clause License:
+
+Copyright (c) 2020-2023, Zheming Jin
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+NOTE: Individual HeCBench benchmark source files may contain additional
+upstream copyright notices and licenses (e.g. AMD BSD-3-Clause, AMD MIT).
+Those per-file licenses apply to their respective files.
+
+================================================================================
+4. NVBit (not shipped — downloaded at setup time)
+   Applies to: nvbit_release/** (after running scripts/setup_nvbit.py)
+   and: nvbit_patches/opcode_hist.cu (BSD 3-Clause, modified)
+================================================================================
+
+NVBit is NOT distributed with this repository. It is downloaded from
+https://github.com/NVlabs/NVBit at setup time via scripts/setup_nvbit.py.
+
+The file nvbit_patches/opcode_hist.cu is a modified version of the upstream
+NVBit opcode_hist example tool, licensed under the BSD 3-Clause License:
+
+SPDX-FileCopyrightText: Copyright (c) 2019 NVIDIA CORPORATION & AFFILIATES.
+All rights reserved.
+SPDX-License-Identifier: BSD-3-Clause
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The full NVBit release (once downloaded) is covered by the NVIDIA CUDA Toolkit
+End User License Agreement. See nvbit_release/EULA.txt after running setup.

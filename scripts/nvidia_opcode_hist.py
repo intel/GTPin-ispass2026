@@ -22,7 +22,7 @@ def parse_and_validate_args() -> argparse.Namespace:
     parser.add_argument(
         "--nvbit_opcode_hist_tool_path",
         type=str,
-        default="./nvbit_release/tools/opcode_hist/opcode_hist.so",
+        default="nvbit_release/tools/opcode_hist/opcode_hist.so",
         help="location of the nvbit opcode hist tool",
     )
     parser.add_argument(
@@ -119,7 +119,7 @@ def main():
         # Instrumented run
         # ------------------------------------------------------------------
         env_vars = os.environ.copy()
-        env_vars["LD_PRELOAD"] = args.nvbit_opcode_hist_tool_path
+        env_vars["LD_PRELOAD"] = os.path.abspath(args.nvbit_opcode_hist_tool_path)
         env_vars["COUNT_WARP_LEVEL"] = "0"
         env_vars["MANGLED_NAMES"] = "0"
 

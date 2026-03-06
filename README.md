@@ -8,14 +8,17 @@ Some measurements in this work build upon the https://github.com/NUCAR-DEV/luthi
 ## Contents
 1. A snapshot of the [Luthier project](https://github.com/matinraayai/Luthier) under the 
    [`Luthier/`](./Luthier) folder, with git revision number `6a1ae19b62ea9d4b021e4555c55a02b5bd1a885a`.
-2. Fifteen benchmarks from the [HeCBench repository](https://github.com/zjin-lcf/HeCBench) under the [`HecBench`](./HeCBench) folder, with git revision 
-   number `b59cdcc3755c3a0cd39b4b9925ac5aa76b1d1171`.
+2. Fifteen benchmarks from the [HeCBench repository](https://github.com/zjin-lcf/HeCBench) are cloned at setup
+   time into the [`HeCBench/`](./HeCBench) folder at git revision 
+   `b59cdcc3755c3a0cd39b4b9925ac5aa76b1d1171` (not shipped in the repo — see [Setup](#setup) below).
 4. `ze_gemm` and `race_condition` workloads under TBD.
-5. A snapshot of [NVBit](https://github.com/NVlabs/NVBit) version 1.7.4, under the [`nvbit_release`](./nvbit_release)
-   folder. The instruction counter example and opcode histogram tools has been modified to measure the host runtime of the instrumented 
-   kernels.
-6. A GTPin Kit version 4.7 TBD.
-7. A set of Python scripts used to run the experiments and obtain the results shown in the figures in text format.
+5. [NVBit](https://github.com/NVlabs/NVBit) version 1.7.4 is downloaded at setup time into the
+   [`nvbit_release/`](./nvbit_release) folder (not shipped in the repo — see [Setup](#setup) below).
+   The opcode histogram tool has been modified to measure the host runtime of the instrumented 
+   kernels; the patched source is stored in [`nvbit_patches/`](./nvbit_patches).
+6. A GTPin Kit version 4.7 TBD. patched sources TBD
+7. A set of Python scripts under [`scripts/`](./scripts) used to set up external dependencies,
+   run the experiments, and obtain the results shown in the figures in text format.
 
 ## Requirements
 The experiments on three following systems:
@@ -68,8 +71,22 @@ TBD
    git clone --single-branch --depth 1 https://github.com/intel/GTPin-ispass2026
    cd GTPin-ispass2026
    ```
-2. Install the software dependencies based on the system you measure.
-3. Build the HeC benchmarks, pass the system you are mesure:
+
+### Setup
+
+2. **Set up HeCBench** This sparse-clones the 15 benchmarks used in this artifact:
+   ```bash
+   python3 scripts/setup_hecbench.py
+   ```
+3. **Set up NVBit** This downloads NVBit v1.7.4 and applies the patched opcode histogram tool:
+   ```bash
+   python3 scripts/setup_nvbit.py
+   ```
+
+### Build & Run
+
+4. Install the software dependencies based on the system you measure.
+5. Build the HeC benchmarks, pass the system you are measuring:
    ```bash
    TBD "system"
    python3 scripts/compile_benchmarks.py --action build --system intel
@@ -78,7 +95,8 @@ TBD
    OR
    python3 scripts/compile_benchmarks.py --action build --system nvidia
    ```
-5. To run the experiments, run the following scripts:
+6. According to the system, build the instrumentation tools TBD
+7. To run the experiments, run the following scripts:
    ```bash
    # For figure 3
    TBD
@@ -93,7 +111,7 @@ TBD
    ```
    Note that the `--dump_stdout_stderr` dumps the output of each experiments to the standard output/error, which 
    can be quite large; Therefore, it is recommended to clip the terminal emulator output when running the experiments.
-6. To create a .csv file with the results, run the following scripts:
+8. To create a .csv file with the results, run the following scripts:
    ```bash
    # For figure 3
    TBD
