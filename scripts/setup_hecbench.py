@@ -27,6 +27,7 @@ Usage (from the project root):
 """
 
 import argparse
+import bz2
 import io
 import shutil
 import sys
@@ -67,8 +68,22 @@ BENCHMARKS = [
 SUFFIXES = ["sycl"]
 
 # Additional top-level paths inside the repo that are needed.
-EXTRA_PATHS = [
-    "src/data",
+EXTRA_PATHS: list[str] = []
+
+# Data archives stored via Git LFS that are not included in GitHub archive
+# tarballs.  Each entry maps the raw file path (relative to the repo root) to
+# the directory it should be extracted into (relative to the HeCBench root).
+# The archives are downloaded via GitHub's raw content API for the pinned
+# commit and then extracted in-place.
+DATA_ARCHIVES = [
+    {
+        "raw_path": "src/data/nn/nn.tar.bz",
+        "extract_to": "src/data/nn",
+    },
+    {
+        "raw_path": "src/data/b+tree/b+tree.tar.bz",
+        "extract_to": "src/data/b+tree",
+    },
 ]
 
 # Top-level files (relative to the repo root) that we also need.
@@ -139,7 +154,7 @@ def setup_hecbench(hecbench_dir: Path, force: bool = False) -> None:
     hecbench_dir.mkdir(parents=True, exist_ok=True)
 
     # --- Download tarball ------------------------------------------------
-    print(f"[1/2] Downloading tarball for commit {HECBENCH_COMMIT[:12]} ...")
+    print(f"[1/3] Downloading tarball for commit {HECBENCH_COMMIT[:12]} ...")
     print(f"  URL: {TARBALL_URL}")
     try:
         response = urllib.request.urlopen(TARBALL_URL)
@@ -150,7 +165,7 @@ def setup_hecbench(hecbench_dir: Path, force: bool = False) -> None:
     print(f"  Downloaded {len(tarball_bytes) / 1_048_576:.1f} MiB")
 
     # --- Extract only the needed paths -----------------------------------
-    print("[2/2] Extracting selected benchmarks ...")
+    print("[2/3] Extracting selected benchmarks ...")
     prefixes = _wanted_prefixes()
     files = _wanted_files()
     root_in_tar = f"{HECBENCH_REPO_NAME}-{HECBENCH_COMMIT}"
@@ -176,6 +191,46 @@ def setup_hecbench(hecbench_dir: Path, force: bool = False) -> None:
                         extracted += 1
 
     print(f"  Extracted {extracted} files into {hecbench_dir}")
+
+    # --- Download and extract data archives (Git LFS objects) -------------
+    if DATA_ARCHIVES:
+        print("[3/3] Downloading and extracting data archives ...")
+        for archive_info in DATA_ARCHIVES:
+            raw_path = archive_info["raw_path"]
+            extract_to = archive_info["extract_to"]
+            # URL-encode '+' as '%2B' for the raw GitHub URL
+            url_path = raw_path.replace("+", "%2B")
+            raw_url = (
+                f"https://github.com/{HECBENCH_REPO_OWNER}/{HECBENCH_REPO_NAME}"
+                f"/raw/master/{url_path}"
+            )
+            dest_dir = hecbench_dir / extract_to
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            print(f"  Downloading {raw_path} ...")
+            print(f"    URL: {raw_url}")
+            try:
+                resp = urllib.request.urlopen(raw_url)
+                archive_bytes = resp.read()
+            except Exception as exc:
+                print(
+                    f"  WARNING: failed to download {raw_path}: {exc}",
+                    file=sys.stderr,
+                )
+                continue
+            print(f"    Downloaded {len(archive_bytes) / 1024:.1f} KiB")
+            # Extract the tar.bz archive into the destination directory
+            try:
+                with tarfile.open(
+                    fileobj=io.BytesIO(archive_bytes), mode="r:bz2"
+                ) as data_tar:
+                    data_tar.extractall(path=dest_dir)
+                print(f"    Extracted to {dest_dir}")
+            except Exception as exc:
+                print(
+                    f"  WARNING: failed to extract {raw_path}: {exc}",
+                    file=sys.stderr,
+                )
+
     print(f"\nDone. HeCBench benchmarks are ready at: {hecbench_dir}")
 
 

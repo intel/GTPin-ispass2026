@@ -14,15 +14,19 @@ python3 scripts/setup_hecbench.py
 ```
 
 This will:
-1. Sparse-clone the HeCBench repository (only the benchmarks used in this
-   artifact are materialized).
-2. Check out the exact commit used for the paper experiments.
-3. Remove the `.git` directory so the result is a plain source tree.
+1. Download a tarball from GitHub's archive API for the pinned commit
+   (no `git` binary required).
+2. Selectively extract only the 15 SYCL benchmark directories and the
+   `LICENSE` file.
+3. Download the `nn` and `b+tree` data archives (`src/data/nn/nn.tar.bz`
+   and `src/data/b+tree/b+tree.tar.bz`) from the `master` branch and
+   extract them into `src/data/nn/` and `src/data/b+tree/`.
 
-Only the following SYCL benchmarks are checked out:
+Only the following SYCL benchmarks are extracted:
 atomicReduction, b+tree, burger, convolutionSeparable, dense-embedding,
 eigenvalue, floydwarshall, fpc, hmm, hwt1d, inversek2j, matrix-rotate,
-maxpool3d, nn, winograd — plus shared `src/data/`.
+maxpool3d, nn, winograd — plus shared data under `src/data/nn/` and
+`src/data/b+tree/`.
 
 ## License
 

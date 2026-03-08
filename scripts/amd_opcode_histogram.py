@@ -1,3 +1,16 @@
+############################ begin_copyright_notice ############################
+### Copyright (C) 2026 Intel Corporation
+###
+### This software and the related documents are Intel copyrighted materials, and your
+### use of them is governed by the express license under which they were provided to
+### you ("License"). Unless the License provides otherwise, you may not use, modify,
+### copy, publish, distribute, disclose or transmit this software or the related
+### documents without Intel's prior written permission.
+###
+### This software and the related documents are provided as is, with no express or
+### implied warranties, other than those that are expressly stated in the License.
+############################ end_copyright_notice ##############################
+
 #!/usr/bin/env python3
 
 import os
@@ -12,7 +25,7 @@ RESULT_PKLE_FILE_NAME = "amd-full-opcode-histogram-results.pkl"
 
 
 def parse_and_validate_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("AMD Opcode Histogram runner script")
+    parser = argparse.ArgumentParser("Instruction count runner script")
     parser.add_argument(
         "--hecbench_dir",
         type=str,
@@ -21,7 +34,7 @@ def parse_and_validate_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--luthier_opcode_histogram_tool_path", type=str,
-        default="Luthier/build/examples/OpcodeHistogram/libLuthierOpcodeHistogram.so",
+        default="Luthier/examples/OpcodeHistogram/libLuthierOpcodeHistogram.so",
         help="location of the luthier instruction count tool",
     )
     parser.add_argument(

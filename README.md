@@ -8,9 +8,10 @@ Some measurements in this work build upon the [luthier-ispass2025](https://githu
 ## Contents
 1. A snapshot of the [Luthier project](https://github.com/matinraayai/Luthier) under the
    [`Luthier/`](./Luthier) folder, with git revision number `6a1ae19b62ea9d4b021e4555c55a02b5bd1a885a`.
-2. Fifteen benchmarks from the [HeCBench repository](https://github.com/zjin-lcf/HeCBench) are cloned at setup
-   time into the [`HeCBench/`](./HeCBench) folder at git revision
-   `b59cdcc3755c3a0cd39b4b9925ac5aa76b1d1171` (not shipped in the repo — see [Setup](#setup) below).
+2. Fifteen SYCL benchmarks from the [HeCBench repository](https://github.com/zjin-lcf/HeCBench) are downloaded
+   at setup time into the [`HeCBench/`](./HeCBench) folder from a tarball at git revision
+   `b59cdcc3755c3a0cd39b4b9925ac5aa76b1d1171`, along with the `nn` and `b+tree` data archives
+   under `src/data/` (not shipped in the repo — see [Setup](#setup) below).
 3. `race_condition` workload under the [`GTPin/race_condition`](./GTPin/race_condition) folder.
 4. `ze_gemm` workload cloned from [PTI-GPU](https://github.com/intel/pti-gpu) at setup time into the [`pti-gpu`](./pti-gpu) folder (not shipped in the repo — see [Setup](#setup) below).
 5. [NVBit](https://github.com/NVlabs/NVBit) version 1.7.4 is downloaded at setup time into the
@@ -91,7 +92,8 @@ Intel Xeon&trade; Platinum 8480+ with NVIDIA A100
    ```bash
    git clone https://github.com/intel/pti-gpu
    ```
-3. **Set up HeCBench** — this sparse-clones the 15 benchmarks used in this artifact:
+3. **Set up HeCBench** — this downloads a tarball of the 15 SYCL benchmarks used in
+   this artifact, plus the `nn` and `b+tree` data archives:
    ```bash
    python3 scripts/setup_hecbench.py
    ```
