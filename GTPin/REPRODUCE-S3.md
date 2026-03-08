@@ -1,14 +1,15 @@
-# Reproducing Figure 3 and Figure 4
+# Reproducing GPU Memory Profiling from Section III
 
-This guide explains how to reproduce Figures 3 and 4 from the GTPin-ispass2026 paper on an Intel&reg; GPU system.
+This guide explains how to reproduce the GPU memory profiling modes described in Sections III-A and III-B from the GTPin-ispass2026 paper on an Intel&reg; GPU system.
+
+To evaluate GTPin beyond reproducing the results described in this artifact, please refer to the [`GTPin User Guide`](https://software.intel.com/sites/landingpage/gtpin/index.html).
 
 ## Prerequisites
-
-It is assumed you followed the instructions in the GTPin-ispass2026/README.md up to number 6
+It is assumed you followed the instructions from the [`How To Run`](../README.md#how-to-run) section in the GTPin-ispass2026/README.md up to number 6
 
 NOTE: Make sure you are running in an environment *WITHOUT* oneAPI loaded
 
-## Figure 3: Memory cache tests
+## Section III-A: Modelling a direct mapped cache (Fig. 3)
 For this test we use the ze_gemm sample application
 ### Setup
 Starting from the GTPin-ispass2026 folder
@@ -28,7 +29,7 @@ python3 ./scripts/intel_memory_cache_model.py
 python3 ./scripts/intel_print_memory_cache_model.py
 ```
 
-## Figure 4: Race condition detection
+## Section III-B: Detecting race condition
 For this test we use an application that simulates memory race conditions
 
 ### Setup

@@ -2,12 +2,14 @@
 
 This guide explains how to set up the environment to run the GTPin-ispass2026 scripts on an Intel&reg; GPU system.
 
+To evaluate GTPin beyond reproducing the results described in this artifact, please refer to the [`GTPin User Guide`](https://software.intel.com/sites/landingpage/gtpin/index.html).
+
 ## Prerequisites
 
 ### System Requirements
-1. Ubuntu 24.04 Linux distribution
-2. Intel&reg; Core Ultra&trade; processor with Intel&reg; Arc graphics
-   (Tested on Intel&reg; Core Ultra&trade; 9 155H processor)
+1. Ubuntu&trade; 24.04 Linux&trade; distribution
+2. Intel Core&trade; Ultra processor with Intel Arc&trade; graphics
+   (Tested on Intel Core Ultra 5 125H processor)
 
 
 ### 1. Install System Dependencies
@@ -17,9 +19,9 @@ sudo apt-get update
 sudo apt-get install -y software-properties-common python3-venv python3-full gnupg wget
 ```
 
-### 2. Install Intel&reg; Graphics Drivers and Level Zero
+### 2. Install Intel Graphics Drivers and Intel Level Zero compute libraries
 
-Add the Intel&reg; graphics PPA and install the required packages:
+Add the Intel graphics PPA and install the required packages:
 
 ```bash
 sudo add-apt-repository -y ppa:kobuk-team/intel-graphics
@@ -33,7 +35,7 @@ sudo apt-get install -y libze-dev intel-ocloc
 sudo apt-get install -y opencl-headers ocl-icd-opencl-dev
 ```
 
-### 4. Install Intel&reg; oneAPI&trade; CPP Essentials Toolkit (v2025.2)
+### 4. Install Intel oneAPI&trade; CPP Essentials Toolkit (v2025.2)
 
 ```bash
 wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/2d607ce3-9aa8-492d-a97d-e473dc37be66/intel-cpp-essentials-2025.2.0.532_offline.sh

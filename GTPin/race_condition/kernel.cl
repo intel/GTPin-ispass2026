@@ -8,7 +8,7 @@ __kernel void race_condition_example(__global int* data, int num_elements)
 {
     int gid = get_global_id(0);
     int lid = get_local_id(0);
-    //printf("gid = %d lid = %d num_elements = %d\n", gid, lid, num_elements);
+
     if (gid < num_elements)
     {
         data[lid % num_elements] += 1;
@@ -19,7 +19,7 @@ __kernel void no_race_condition_example(__global int* data, int num_elements)
 {
     int gid = get_global_id(0);
     int lid = get_local_id(0);
-    //printf("gid = %d lid = %d num_elements = %d\n", gid, lid, num_elements);
+
     if (gid < num_elements)
     {
         atomic_inc(&data[lid % num_elements]);
