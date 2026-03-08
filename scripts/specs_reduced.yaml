@@ -1,0 +1,204 @@
+#SPDX-License-Identifier: Apache-2.0
+
+HeCBench:
+  burger:
+    run_command: ("./main", "8193", "8193", "10")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  maxpool3d:
+    run_command: ("./main", "2048", "2048", "96", "10")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  convolutionSeparable:
+    run_command: ("./main", "8192", "8192", "10")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  dense-embedding:
+    run_command: ("./main", "12500", "1", "10")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  winograd:
+    run_command: ("./main",)
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  atomicReduction:
+    run_command: ("./main",)
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  matrix-rotate:
+    run_command: ("./main", "100", "10")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  eigenvalue:
+    run_command: ("./main", "512", "10")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  b+tree:
+    run_command: ("./b+tree.out", "file", "../data/b+tree/mil.txt", "command", "../data/b+tree/command.txt")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  floydwarshall:
+    run_command: ("./main", "16","5", "8")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  fpc:
+    run_command: ("./main", "256", "10")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  hwt1d:
+    run_command: ("./main", "8388608", "10")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  nn:
+    run_command: ("./main", "filelist.txt", "-r", "5", "-lat", "30", "-lng", "90", "-i", "10", "-t")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  hmm:
+    run_command: ("./main",)
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''","-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+          "INTEL=yes")
+  inversek2j:
+    run_command: ("./main", "../inversek2j-sycl/coord_in.txt", "10")
+    systems:
+      amd:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx90a")
+      nvidia:
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=''", "-e", "CC=/opt/sycl/bin/clang++", "-e",
+          "CUDA=yes", "-e", "CUDA_ARCH=sm_80")
+      intel:
+        compilation_flags: ("-e", "CC=/opt/intel/oneapi/2025.2/bin/compiler/clang++", "-e", "GPU=yes", "-e",
+            "INTEL=yes")
+Opcode:
+  systems:
+    - amd
+    - nvidia
+    - intel
+  benchmarks:
+    - atomicReduction
+    - b+tree
+    - burger
+    - convolutionSeparable
+    - dense-embedding
+    - eigenvalue
+    - floydwarshall
+    - fpc
+    - hmm
+    - hwt1d
+    - inversek2j
+    - matrix-rotate
+    - maxpool3d
+    - nn
+    - winograd
