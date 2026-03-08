@@ -27,7 +27,7 @@ def capture_subprocess_output(cmd, shell=False, cwd=None):
     return result.returncode, result.stdout, result.stderr
 
 def parse_and_validate_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("Memory cache model running script")
+    parser = argparse.ArgumentParser("Intel Race Condition Detection runner script")
     parser.add_argument(
         "--kit",
         type=str,

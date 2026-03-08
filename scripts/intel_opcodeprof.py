@@ -26,7 +26,7 @@ RESULT_PKLE_FILE_NAME = "intel-full-opcodeprof-results.pkl"
 
 
 def parse_and_validate_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("Opcodeprof runner script")
+    parser = argparse.ArgumentParser("Intel Opcodeprof runner script")
     parser.add_argument(
         "--hecbench_dir",
         type=str,

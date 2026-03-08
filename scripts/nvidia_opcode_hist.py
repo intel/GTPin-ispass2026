@@ -25,7 +25,7 @@ RESULT_PKLE_FILE_NAME = "nvidia-full-opcode-hist-results.pkl"
 
 
 def parse_and_validate_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("Instruction count runner script")
+    parser = argparse.ArgumentParser("NVIDIA Opcode Histogram runner script")
     parser.add_argument(
         "--hecbench_dir",
         type=str,

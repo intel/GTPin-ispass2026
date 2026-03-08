@@ -20,7 +20,7 @@ import csv
 
 
 def parse_and_validate_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("Opcodeprof runner script")
+    parser = argparse.ArgumentParser("Intel Opcodeprof print script")
     parser.add_argument("--hecbench_dir", type=str,
                         default="./HeCBench",
                         help="location of the HeCBench repo")

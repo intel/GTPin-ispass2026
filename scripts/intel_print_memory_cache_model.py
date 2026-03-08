@@ -19,7 +19,7 @@ import csv
 import sys
 
 def parse_and_validate_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("Memory cache model script")
+    parser = argparse.ArgumentParser("Intel Memory Cache Model print script")
     parser.add_argument("--app", type=str,
                         default="./pti-gpu/samples/ze_gemm/build",
                         help="Path of the compiled ze_gemm application")
