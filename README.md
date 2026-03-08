@@ -25,7 +25,7 @@ Some measurements in this work build upon the [luthier-ispass2025](https://githu
 ## Requirements
 The experiments were performed on the three following systems:
 1. Intel&reg; GPU for GTPin experiments and performance measurements:
-Intel&reg; Core Ultra&trade; processor with Arc&trade; integrated GPU
+Intel&reg; Core&trade; Ultra processor with Arc&trade; integrated GPU
 2. AMD&reg; GPU for Luthier performance measurements:
 AMD&reg; EPYC&trade; 7313 16-Core Processor with an AMD
 Instinct&trade; MI250 GPU
@@ -36,7 +36,7 @@ Intel&reg; Xeon&trade; Platinum 8480+ with NVIDIA&reg; A100
 ### Intel&reg; system:
 
 **Hardware requirements:**
-1. CPU/GPU: Intel&reg; Core Ultra&trade; processor with Arc&trade; integrated GPU
+1. CPU/GPU: Intel&reg; Core&trade; Ultra 5 125H processor with Intel&reg; Arc&trade; Graphics (codenamed Meteor Lake-P)
 
 **Software requirements:**
 1. A Linux OS (Ubuntu 22.04.5 LTS was used).
