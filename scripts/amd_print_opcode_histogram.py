@@ -38,7 +38,7 @@ def main():
     args = parse_and_validate_args()
     benchmark_cfg = read_yaml_cfg(args.specs_yaml)
 
-    benchmarks = benchmark_cfg["InstrCount"]["benchmarks"]
+    benchmarks = benchmark_cfg["Opcode"]["benchmarks"]
     gpu_system = "amd"
 
     # Collect rows for CSV
